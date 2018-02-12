@@ -1,0 +1,134 @@
+<html>
+<head>
+    <title>Play Chess</title>
+    <style>
+        img {
+            -webkit-filter: drop-shadow(1px 1px 1px #222);
+            filter: drop-shadow(1px 1px 1px #222);
+            position: relative;
+            bottom: 2px;
+        }
+
+    </style>
+    <script>
+        var currId = 65
+
+        var shake = function (element, magnitude = 16) {
+            //First set the initial tilt angle to the right (+1)
+            var tiltAngle = 1;
+
+            //A counter to count the number of shakes
+            var counter = 1;
+
+            //The total number of shakes (there will be 1 shake per frame)
+            var numberOfShakes = 15;
+
+            //Capture the element's position and angle so you can
+            //restore them after the shaking has finished
+            var startX = 0,
+                    startY = 0,
+                    startAngle = 0;
+
+            // Divide the magnitude into 10 units so that you can
+            // reduce the amount of shake by 10 percent each frame
+            var magnitudeUnit = magnitude / numberOfShakes;
+
+            //The `randomInt` helper function
+            var randomInt = (min, max) => {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            };
+
+
+            upAndDownShake();
+
+            //The `upAndDownShake` function
+            function upAndDownShake() {
+
+                //Shake the element while the `counter` is less than
+                //the `numberOfShakes`
+                if (counter < numberOfShakes) {
+
+                    //Reset the element's position at the start of each shake
+                    element.style.transform = 'translate(' + startX + 'px, ' + startY + 'px)';
+
+                    //Reduce the magnitude
+                    magnitude -= magnitudeUnit;
+
+                    //Randomly change the element's position
+                    var randomX = randomInt(-magnitude, magnitude);
+                    var randomY = randomInt(-magnitude, magnitude);
+
+                    element.style.transform = 'translate(' + randomX + 'px, ' + randomY + 'px)';
+
+                    //Add 1 to the counter
+                    counter += 1;
+
+                    requestAnimationFrame(upAndDownShake);
+                }
+
+                //When the shaking is finished, restore the element to its original
+                //position and remove it from the `shakingElements` array
+                if (counter >= numberOfShakes) {
+                    element.style.transform = 'translate(' + startX + ', ' + startY + ')';
+                }
+            }
+
+        };
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            var origParentNode = document.getElementById(data).parentNode
+            var destParentNode = ev.target.parentNode
+
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', '/move?' + destParentNode.id);
+            xhr.onload = function() {
+                if (xhr.status !== 200) {
+                    shake(document.getElementById("board"));
+                }else{
+                    destParentNode.replaceChild(document.getElementById(data), ev.target);
+                    var img = document.createElement("img");
+                    img.setAttribute('src', '/images/transparent.png');
+                    img.setAttribute('id', 'no_piece' + currId);
+                    currId++;
+                    origParentNode.appendChild(img);
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</head>
+<body>
+<table id="board">
+{{ range . }}
+    <tr>
+    {{ range . }}
+        <td height="70px" id="{{.Col}}{{.Row}}"
+        {{ $white := .Color }}
+        {{ if not $white }}
+            bgcolor="#D0ECE7"
+        {{ end }}
+            ondrop="drop(event)" ondragover="allowDrop(event)">
+        {{if ne .ImgPath ""}}
+            <img id="{{.PieceId}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
+        {{end}}
+        </td>
+    {{ end }}
+    </tr>
+{{ end }}
+
+</table>
+
+
+</body>
+</html>

@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/notnil/chess"
+	"bytes"
+	"html/template"
 )
 
 type Event struct {
@@ -23,7 +25,27 @@ func nextID(events []Event) int {
 var events []Event
 
 func main() {
+
+	http.HandleFunc("/game/", func(writer http.ResponseWriter, request *http.Request) {
+		game := chess.NewGame()
+
+		for _, event := range events {
+			game.MoveStr(event.move)
+		}
+
+		var tpl bytes.Buffer
+		t := template.New("game.tmpl")
+		t.ParseFiles("templates/game.tmpl")
+		if err := t.Execute(&tpl, draw(game.Position().Board())); err!=nil{
+			panic(err)
+		}
+		writer.Write(tpl.Bytes())
+	})
+
+
 	game := chess.NewGame()
+
+	http.Handle("/images/", http.StripPrefix("/", http.FileServer(http.Dir("./public"))))
 
 	http.HandleFunc("/move", moveHandler(game))
 	http.HandleFunc("/board", boardHandler)
