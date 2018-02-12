@@ -89,7 +89,8 @@
             var destParentNode = ev.target.parentNode
 
             xhr = new XMLHttpRequest();
-            xhr.open('POST', '/move?' + destParentNode.id);
+            debugger
+            xhr.open('POST', '/move?' +  origParentNode.id + "-" + destParentNode.id);
             xhr.onload = function() {
                 if (xhr.status !== 200) {
                     shake(document.getElementById("board"));
@@ -110,14 +111,14 @@
 {{ range . }}
     <tr>
     {{ range . }}
-        <td height="70px" id="{{.Col}}{{.Row}}"
+        <td height="70px" id="{{.Id}}"
         {{ $white := .Color }}
         {{ if not $white }}
             bgcolor="#D0ECE7"
         {{ end }}
             ondrop="drop(event)" ondragover="allowDrop(event)">
         {{if ne .ImgPath ""}}
-            <img id="{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
+            <img id="piece_{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
         {{end}}
         </td>
     {{ end }}

@@ -12,8 +12,7 @@ type piece struct {
 type square struct {
 	piece
 	Color bool
-	Row int
-	Col string
+	squareId Square
 	Id int
 }
 
@@ -36,15 +35,12 @@ var pieces = map[Piece]piece{
 func draw(b *Board) [][]square {
 	board := make([][]square, 8)
 	isWhite := false
-	rows := []string{"a","b","c","d","e","f","g","h"}
 	for r := 7; r >= 0; r-- {
 		board[7-r] = make([]square, 8)
 		for f := 0; f < 8; f++ {
 			s := r*8 + f
 			p := pieces[b.Piece(Square(s))]
 			board[7-r][f] = square{
-				Row: r+1,
-				Col: rows[f],
 				piece: p,
 				Color: isWhite,
 				Id: r * 8 + f,

@@ -7,6 +7,8 @@ import (
 	"github.com/notnil/chess"
 	"bytes"
 	"html/template"
+	"strconv"
+	"strings"
 )
 
 type Event struct {
@@ -30,18 +32,17 @@ func main() {
 		game := chess.NewGame()
 
 		for _, event := range events {
-			game.MoveStr(event.move)
+			game.Move(queryToMove(game, event.move))
 		}
 
 		var tpl bytes.Buffer
 		t := template.New("game.tmpl")
 		t.ParseFiles("templates/game.tmpl")
-		if err := t.Execute(&tpl, draw(game.Position().Board())); err!=nil{
+		if err := t.Execute(&tpl, draw(game.Position().Board())); err != nil {
 			panic(err)
 		}
 		writer.Write(tpl.Bytes())
 	})
-
 
 	game := chess.NewGame()
 
@@ -52,29 +53,41 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
+func queryToMove(game *chess.Game, query string) *chess.Move {
+	moves := strings.Split(query, "-")
+	fromSquare, _ := strconv.ParseInt(moves[0], 10, 8)
+	toSquare, _ := strconv.ParseInt(moves[1], 10, 8)
+	for _, move := range game.ValidMoves() {
+		if move.S1() == chess.Square(fromSquare) && move.S2() == chess.Square(toSquare) {
+			return move
+		}
+	}
+	return nil
+}
+
 // move handler performs data validation and writes it to the event store if everything is correct
 func moveHandler(game *chess.Game) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		move := r.URL.RawQuery
-
-		if err := game.MoveStr(move); err != nil {
+		query := r.URL.RawQuery
+		move := queryToMove(game, query)
+		if err := game.Move(move); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Invalid move")); err != nil {
 				log.Printf("can't write the response: %v", err)
 			}
 			log.Println(err)
-			return
-		}
+		} else {
+			events = append(events, Event{
+				id:   nextID(events),
+				move: query,
+			})
 
-		events = append(events, Event{
-			id:   nextID(events),
-			move: move,
-		})
-
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("Moved to " + r.URL.RawQuery)); err != nil {
-			log.Printf("can't write the response: %v", err)
+			w.WriteHeader(http.StatusOK)
+			if _, err := w.Write([]byte("Moved to " + r.URL.RawQuery)); err != nil {
+				log.Printf("can't write the response: %v", err)
+			}
 		}
+		return
 	}
 }
 
@@ -84,7 +97,8 @@ func boardHandler(w http.ResponseWriter, r *http.Request) {
 	game := chess.NewGame()
 
 	for _, event := range events {
-		game.MoveStr(event.move)
+		move := queryToMove(game, event.move)
+		game.Move(move)
 	}
 
 	if _, err := w.Write([]byte(game.Position().Board().Draw())); err != nil {
