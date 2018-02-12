@@ -4,11 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/notnil/chess"
 	"bytes"
 	"html/template"
 	"strconv"
 	"strings"
+
+	"github.com/notnil/chess"
 )
 
 type Event struct {
@@ -27,7 +28,6 @@ func nextID(events []Event) int {
 var events []Event
 
 func main() {
-
 	http.HandleFunc("/game/", func(writer http.ResponseWriter, request *http.Request) {
 		game := chess.NewGame()
 
@@ -36,7 +36,7 @@ func main() {
 		}
 
 		var tpl bytes.Buffer
-		t:= template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
+		t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
 		if err := t.ExecuteTemplate(&tpl, "base", draw(game.Position().Board())); err != nil {
 			panic(err)
 		}
@@ -83,7 +83,7 @@ func moveHandler(game *chess.Game) func(w http.ResponseWriter, r *http.Request) 
 
 			w.WriteHeader(http.StatusOK)
 			var tpl bytes.Buffer
-			t:= template.Must(template.ParseFiles("templates/board.tmpl"))
+			t := template.Must(template.ParseFiles("templates/board.tmpl"))
 			if err := t.ExecuteTemplate(&tpl, "board", draw(game.Position().Board())); err != nil {
 				panic(err)
 			}
