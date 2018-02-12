@@ -11,8 +11,6 @@
 
     </style>
     <script>
-        var currId = 65
-
         var shake = function (element, magnitude = 16) {
             //First set the initial tilt angle to the right (+1)
             var tiltAngle = 1;
@@ -99,8 +97,7 @@
                     destParentNode.replaceChild(document.getElementById(data), ev.target);
                     var img = document.createElement("img");
                     img.setAttribute('src', '/images/transparent.png');
-                    img.setAttribute('id', 'no_piece' + currId);
-                    currId++;
+                    img.setAttribute('id', 'no_piece' + data);
                     origParentNode.appendChild(img);
                 }
             };
@@ -120,7 +117,7 @@
         {{ end }}
             ondrop="drop(event)" ondragover="allowDrop(event)">
         {{if ne .ImgPath ""}}
-            <img id="{{.PieceId}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
+            <img id="{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
         {{end}}
         </td>
     {{ end }}
