@@ -1,3 +1,4 @@
+{{define "base"}}
 <html>
 <head>
     <title>Play Chess</title>
@@ -92,13 +93,9 @@
             xhr.open('POST', '/move?' +  origParentNode.id + "-" + destParentNode.id);
             xhr.onload = function() {
                 if (xhr.status !== 200) {
-                    shake(document.getElementById("board"));
+                    shake(document.getElementById("board-div"));
                 }else{
-                    destParentNode.replaceChild(document.getElementById(data), ev.target);
-                    var img = document.createElement("img");
-                    img.setAttribute('src', '/images/transparent.png');
-                    img.setAttribute('id', 'no_piece' + data);
-                    origParentNode.appendChild(img);
+                    document.getElementById("board-div").innerHTML = xhr.responseText
                 }
             };
             xhr.send();
@@ -106,26 +103,9 @@
     </script>
 </head>
 <body>
-<table id="board">
-{{ range . }}
-    <tr>
-    {{ range . }}
-        <td height="70px" id="{{.Id}}"
-        {{ $white := .Color }}
-        {{ if not $white }}
-            bgcolor="#D0ECE7"
-        {{ end }}
-            ondrop="drop(event)" ondragover="allowDrop(event)">
-        {{if ne .ImgPath ""}}
-            <img id="piece_{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)" src={{.ImgPath}} width="70px"/>
-        {{end}}
-        </td>
-    {{ end }}
-    </tr>
-{{ end }}
-
-</table>
-
-
+<div id="board-div">
+    {{template "board" .}}
+</div>
 </body>
 </html>
+{{end}}

@@ -36,9 +36,8 @@ func main() {
 		}
 
 		var tpl bytes.Buffer
-		t := template.New("game.tmpl")
-		t.ParseFiles("templates/game.tmpl")
-		if err := t.Execute(&tpl, draw(game.Position().Board())); err != nil {
+		t:= template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
+		if err := t.ExecuteTemplate(&tpl, "base", draw(game.Position().Board())); err != nil {
 			panic(err)
 		}
 		writer.Write(tpl.Bytes())
@@ -83,9 +82,12 @@ func moveHandler(game *chess.Game) func(w http.ResponseWriter, r *http.Request) 
 			})
 
 			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("Moved to " + r.URL.RawQuery)); err != nil {
-				log.Printf("can't write the response: %v", err)
+			var tpl bytes.Buffer
+			t:= template.Must(template.ParseFiles("templates/board.tmpl"))
+			if err := t.ExecuteTemplate(&tpl, "board", draw(game.Position().Board())); err != nil {
+				panic(err)
 			}
+			w.Write(tpl.Bytes())
 		}
 		return
 	}

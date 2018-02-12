@@ -1,0 +1,22 @@
+{{define "board"}}
+<table id="square">
+{{ range . }}
+    <tr>
+    {{ range . }}
+        <td height="70px" id="{{.Id}}"
+        {{ $white := .Color }}
+        {{ if not $white }}
+            bgcolor="#D0ECE7"
+        {{ end }}
+            ondrop="drop(event)" ondragover="allowDrop(event)">
+        {{if ne .ImgPath ""}}
+            <img id="piece_{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)"
+                 src={{.ImgPath}} width="70px"/>
+        {{end}}
+        </td>
+    {{ end }}
+    </tr>
+{{ end }}
+
+</table>
+{{end}}
