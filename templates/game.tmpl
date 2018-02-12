@@ -89,7 +89,6 @@
             var destParentNode = ev.target.parentNode
 
             xhr = new XMLHttpRequest();
-            debugger
             xhr.open('POST', '/move?' +  origParentNode.id + "-" + destParentNode.id);
             xhr.onload = function() {
                 if (xhr.status !== 200) {
