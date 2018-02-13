@@ -74,7 +74,7 @@
             var destParentNode = ev.target.parentNode;
             var piece = elem.getAttribute("class");
             var pos = parseInt(destParentNode.id);
-            if ((piece === "white_pawn" || piece === "black_pawn") &&
+            if ((piece === "p_black" || piece === "p_white") &&
                     (pos < 8 || pos > 55)) {
                 xhr = new XMLHttpRequest();
                 xhr.open('GET', '/valid_promotions?' + origParentNode.id + "-" + destParentNode.id);
