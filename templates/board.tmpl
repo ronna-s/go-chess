@@ -1,17 +1,17 @@
 {{define "board"}}
-<table id="square">
+<table id="board">
 {{ range . }}
     <tr>
     {{ range . }}
-        <td height="70px" id="{{.Id}}"
+        <td height="70px" id="{{.Pos}}"
         {{ $white := .Color }}
         {{ if not $white }}
             bgcolor="#D0ECE7"
         {{ end }}
             ondrop="drop(event)" ondragover="allowDrop(event)">
-        {{if ne .ImgPath ""}}
-            <img id="piece_{{.Id}}" class="{{.Type}}" draggable="true" ondragstart="drag(event)"
-                 src={{.ImgPath}} width="70px"/>
+        {{if ne .Piece.ImagePath ""}}
+            <img id="piece_{{.Pos}}" class="{{.Piece.Id}}_{{.Piece.Color}}" draggable="true" ondragstart="drag(event)"
+                 src={{.Piece.ImagePath}} width="70px"/>
         {{end}}
         </td>
     {{ end }}
