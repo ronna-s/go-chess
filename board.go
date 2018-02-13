@@ -17,18 +17,18 @@ type square struct {
 }
 
 var pieces = map[Piece]piece{
-	BlackQueen:  {ImgPath: "/images/queen-3d-pink.png", Type: "black_queen"},
-	BlackKing:   {ImgPath: "/images/king-3d-pink.png", Type: "black_king"},
-	BlackBishop: {ImgPath: "/images/bishop-3d-pink-big-hat-2.png", Type: "black_bishop"},
-	BlackKnight: {ImgPath: "/images/knight-3d-pink.png", Type: "black_knight"},
-	BlackRook:   {ImgPath: "/images/rook-3d-pink.png", Type: "black_rook"},
-	BlackPawn:   {ImgPath: "/images/pawn-3d-pink.png", Type: "black_pawn"},
-	WhiteQueen:  {ImgPath: "/images/queen-3d.png", Type: "white_queen"},
-	WhiteKing:   {ImgPath: "/images/king-3d.png", Type: "white_king"},
-	WhiteBishop: {ImgPath: "/images/bishop-3d-big-hat-2.png", Type: "white_bishop"},
-	WhiteKnight: {ImgPath: "/images/knight-3d.png", Type: "white_knight"},
-	WhiteRook:   {ImgPath: "/images/rook-3d.png", Type: "white_rook"},
-	WhitePawn:   {ImgPath: "/images/pawn-3d.png", Type: "white_pawn"},
+	BlackQueen:  {ImgPath: "/images/q-black.png", Type: "black_queen"},
+	BlackKing:   {ImgPath: "/images/k-black.png", Type: "black_king"},
+	BlackBishop: {ImgPath: "/images/b-black.png", Type: "black_bishop"},
+	BlackKnight: {ImgPath: "/images/n-black.png", Type: "black_knight"},
+	BlackRook:   {ImgPath: "/images/r-black.png", Type: "black_rook"},
+	BlackPawn:   {ImgPath: "/images/p-black.png", Type: "black_pawn"},
+	WhiteQueen:  {ImgPath: "/images/q-white.png", Type: "white_queen"},
+	WhiteKing:   {ImgPath: "/images/k-white.png", Type: "white_king"},
+	WhiteBishop: {ImgPath: "/images/b-white.png", Type: "white_bishop"},
+	WhiteKnight: {ImgPath: "/images/n-white.png", Type: "white_knight"},
+	WhiteRook:   {ImgPath: "/images/r-white.png", Type: "white_rook"},
+	WhitePawn:   {ImgPath: "/images/p-white.png", Type: "white_pawn"},
 	NoPiece:     {ImgPath: "/images/transparent.png", Type: "no_piece"},
 }
 
