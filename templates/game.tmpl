@@ -55,7 +55,7 @@
 
         function promote(origPos, newPos, newPiece) {
             xhr = new XMLHttpRequest();
-            xhr.open('POST', '/promote?' + origPos + "-" + newPos + "-" + newPiece);
+            xhr.open('POST', '/promote?target=' + origPos + "-" + newPos + "-" + newPiece + "&game_id=" + {{ .Name }});
             xhr.onload = function () {
                 if (xhr.status !== 200) {
                     shake(document.getElementById("board-div"));
@@ -77,7 +77,7 @@
             if ((piece === "p_black" || piece === "p_white") &&
                     (pos < 8 || pos > 55)) {
                 xhr = new XMLHttpRequest();
-                xhr.open('GET', '/valid_promotions?' + origParentNode.id + "-" + destParentNode.id);
+                xhr.open('GET', '/valid_promotions?target=' + origParentNode.id + "-" + destParentNode.id) + "&game_id=" + {{ .Name }};
                 xhr.onload = function () {
                     if (xhr.status !== 200) {
                         shake(document.getElementById("board-div"));
@@ -100,7 +100,7 @@
                 xhr.send();
             } else {
                 xhr = new XMLHttpRequest();
-                xhr.open('POST', '/move?' + origParentNode.id + "-" + destParentNode.id);
+                xhr.open('POST', '/move?target=' + origParentNode.id + "-" + destParentNode.id + "&game_id=" + {{ .Name }});
                 xhr.onload = function () {
                     if (xhr.status !== 200) {
                         shake(document.getElementById("board-div"));
@@ -114,8 +114,11 @@
     </script>
 </head>
 <body>
+<div id="name-div">
+    Game name: {{ .Name }}
+</div>
 <div id="board-div">
-    {{template "board" .}}
+    {{template "board" .Board}}
 </div>
 </body>
 </html>

@@ -1,0 +1,28 @@
+<html>
+<head>
+    <script>
+        function newgame() {
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', '/create');
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                window.location.href = xhr.getResponseHeader("Location");
+            }
+        }
+
+        function gotogame() {
+            window.location.href = '/game?game_id=' + document.getElementById('game_name_input').value
+        }
+    </script>
+</head>
+<body>
+    <div id="game_name">
+        <input id="game_name_input"></input>
+        <button onclick="gotogame()">Go!</button>
+    </div>
+    <br>
+    <div>
+        <button onclick="newgame()">Start new game</button>
+    </div>
+</body>
+</html>

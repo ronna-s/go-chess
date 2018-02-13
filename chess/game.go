@@ -46,15 +46,15 @@ func (g *Game) Promote(p Promotion) error {
 	return errors.New("promotion is invalid")
 }
 
-func (g *Game) Draw() [][]square {
-	board := make([][]square, 8)
+func (g *Game) Draw() [][]Square {
+	board := make([][]Square, 8)
 	isWhite := false
 	for r := 7; r >= 0; r-- {
-		board[7-r] = make([]square, 8)
+		board[7-r] = make([]Square, 8)
 		for f := 0; f < 8; f++ {
 			pos := r*8 + f
 			p := g.getPiece(pos)
-			board[7-r][f] = square{
+			board[7-r][f] = Square{
 				Piece: p,
 				Color: Color(isWhite),
 				Pos:   pos,
