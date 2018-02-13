@@ -59,8 +59,14 @@ func queryToMove(game *chess.Game, query string) *chess.Move {
 	moves := strings.Split(query, "-")
 	fromSquare, _ := strconv.ParseInt(moves[0], 10, 8)
 	toSquare, _ := strconv.ParseInt(moves[1], 10, 8)
+	var promo string
+	if len(moves) > 2 {
+		promo = moves[2]
+	}
 	for _, move := range game.ValidMoves() {
-		if move.S1() == chess.Square(fromSquare) && move.S2() == chess.Square(toSquare) {
+		if move.S1() == chess.Square(fromSquare) &&
+			move.S2() == chess.Square(toSquare) &&
+			move.Promo().String() == promo {
 			return move
 		}
 	}
