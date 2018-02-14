@@ -45,6 +45,8 @@ func main() {
 	http.HandleFunc("/game", gameHandler)
 	http.HandleFunc("/game/", newGameHandler)
 	http.HandleFunc("/create", createGameHandler)
+	http.HandleFunc("/replay", replayHandler)
+	http.HandleFunc("/events", eventIDsHandler)
 	http.HandleFunc("/valid_promotions", validPromotionsHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

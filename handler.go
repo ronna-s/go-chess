@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/wwgberlin/go-event-sourcing-exercise/namegen"
@@ -135,4 +137,50 @@ func validPromotionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte(strings.Join(strs, ",")))
 	return
+}
+
+// TODO: err on invalid events and games; extend error handling with err codes and msgs
+func replayHandler(w http.ResponseWriter, r *http.Request) {
+	gameID := r.URL.Query().Get("game_id")
+	lastEventString := r.URL.Query().Get("target")
+	lastEventID, err := strconv.Atoi(lastEventString)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	var eventSubset []Event
+	for _, e := range events {
+		if e.id == lastEventID {
+			break
+		}
+		if e.aggregateID == gameID {
+			eventSubset = append(eventSubset, e)
+		}
+	}
+
+	game := buildGame(eventSubset, gameID)
+
+	w.WriteHeader(http.StatusOK)
+	var tpl bytes.Buffer
+	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
+	if err := t.ExecuteTemplate(&tpl, "base", Page{gameID, game.Draw()}); err != nil {
+		panic(err)
+	}
+	w.Write(tpl.Bytes())
+}
+
+func eventIDsHandler(w http.ResponseWriter, r *http.Request) {
+	gameID := r.URL.Query().Get("game_id")
+	var ids []int
+	for _, e := range events {
+		if e.aggregateID == gameID {
+			ids = append(ids, e.id)
+		}
+	}
+	res, err := json.Marshal(ids)
+	if err != nil {
+		log.Println(err)
+	}
+	w.Write(res)
 }
