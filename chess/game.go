@@ -3,8 +3,6 @@ package chess
 import (
 	"errors"
 
-	"fmt"
-
 	"github.com/notnil/chess"
 )
 
@@ -38,7 +36,6 @@ func (g *Game) Promote(p Promotion) error {
 		if move.S1() == chess.Square(p.from) &&
 			move.S2() == chess.Square(p.to) &&
 			move.Promo().String() == p.newPiece {
-			fmt.Println(move)
 			g.ptr.Move(move)
 			return nil
 		}

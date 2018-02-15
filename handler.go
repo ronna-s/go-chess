@@ -100,9 +100,10 @@ func promoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	events = append(events, Event{
-		id:        nextID(events),
-		eventData: query,
-		eventType: EventPromotion,
+		id:          nextID(events),
+		aggregateID: gameID,
+		eventData:   query,
+		eventType:   EventPromotion,
 	})
 
 	w.WriteHeader(http.StatusOK)

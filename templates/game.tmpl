@@ -77,7 +77,7 @@
             if ((piece === "p_black" || piece === "p_white") &&
                     (pos < 8 || pos > 55)) {
                 xhr = new XMLHttpRequest();
-                xhr.open('GET', '/valid_promotions?target=' + origParentNode.id + "-" + destParentNode.id) + "&game_id=" + {{ .Name }};
+                xhr.open('GET', '/valid_promotions?target=' + origParentNode.id + "-" + destParentNode.id + "&game_id=" + {{ .Name }});
                 xhr.onload = function () {
                     if (xhr.status !== 200) {
                         shake(document.getElementById("board-div"));

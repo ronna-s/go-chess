@@ -64,7 +64,9 @@ func buildGame(events []Event, gameID string) *chess.Game {
 		case EventMove:
 			game.Move(parseMove(event.eventData))
 		case EventPromotion:
-			game.Promote(parsePromotion(event.eventData))
+			if err := game.Promote(parsePromotion(event.eventData)); err != nil {
+				panic(err)
+			}
 		case EventRollback:
 			//todo
 		}
