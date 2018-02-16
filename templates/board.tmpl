@@ -8,7 +8,7 @@
         {{ if not $white }}
             bgcolor="#D0ECE7"
         {{ end }}
-            ondrop="drop(event)" ondragover="allowDrop(event)">
+            ondrop="move(event)" ondragover="allowDrop(event)">
         {{if ne .Piece.ImagePath ""}}
             <img id="piece_{{.Pos}}" class="{{.Piece.Id}}_{{.Piece.Color}}" draggable="true" ondragstart="drag(event)"
                  src={{.Piece.ImagePath}} width="70px"/>

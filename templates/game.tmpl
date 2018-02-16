@@ -13,6 +13,29 @@
     </style>
     <script>
         var timer;
+        var gameId = "{{ .Name}}";
+
+        var ws = new WebSocket("ws://127.0.0.1:8080/ws");
+        ws.onmessage = function(event) {
+            var board = document.getElementById("board-div");
+            switch(event.data) {
+                case "0":
+                    shake(board);
+                    break;
+                case "1":
+                    xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/board?game_id=' + gameId);
+                    xhr.onload = function () {
+                        if (xhr.status !== 200) {
+                            shake(document.getElementById("board-div"));
+                        } else {
+                            clearInterval(timer);
+                            document.getElementById("board-div").innerHTML = xhr.responseText
+                        }
+                    };
+                    xhr.send();
+            }
+        };
         var shake = function (element, magnitude = 16) {
             var counter = 1;
             var numberOfShakes = 15;
@@ -54,61 +77,60 @@
         }
 
         function promote(origPos, newPos, newPiece) {
+            var msg = {
+                Type: "promote",
+                Target: origPos + "-" + newPos + "-" + newPiece,
+                AggregateId: gameId
+            };
+            ws.send(JSON.stringify(msg));
+        }
+
+        function getPormotions(ev) {
+            var elem = document.getElementById(ev.dataTransfer.getData("text"));
+            var origParentNode = elem.parentNode;
+            var destParentNode = ev.target.parentNode;
+
             xhr = new XMLHttpRequest();
-            xhr.open('POST', '/promote?target=' + origPos + "-" + newPos + "-" + newPiece + "&game_id=" + {{ .Name }});
+            xhr.open('GET', '/promotions?target=' + origParentNode.id + "-" + destParentNode.id + "&game_id=" + gameId);
             xhr.onload = function () {
                 if (xhr.status !== 200) {
                     shake(document.getElementById("board-div"));
                 } else {
-                    clearInterval(timer);
-                    document.getElementById("board-div").innerHTML = xhr.responseText
+                    var images = xhr.responseText.split(",");
+                    var x= 0;
+                    function displayNextPromotion() {
+                        x = (x === images.length - 1) ? 0 : x + 1;
+                        elem.src = images[x];
+                        elem.setAttribute(
+                                "onClick", "promote("+origParentNode.id+","+ destParentNode.id+ ",'" +elem.src.split("-")[0].slice(-1) + "')");
+                    }
+                    function startTimer() {
+                        timer = setInterval(displayNextPromotion, 1000);
+                    }
+                    destParentNode.replaceChild(elem, ev.target);
+                    startTimer()
                 }
             };
             xhr.send();
         }
-        function drop(ev) {
+
+        function move(ev) {
             ev.preventDefault();
-            var data = ev.dataTransfer.getData("text");
-            var elem = document.getElementById(data);
-            var origParentNode = document.getElementById(data).parentNode;
+            var elem = document.getElementById(ev.dataTransfer.getData("text"));
+            var origParentNode = elem.parentNode;
             var destParentNode = ev.target.parentNode;
             var piece = elem.getAttribute("class");
             var pos = parseInt(destParentNode.id);
             if ((piece === "p_black" || piece === "p_white") &&
                     (pos < 8 || pos > 55)) {
-                xhr = new XMLHttpRequest();
-                xhr.open('GET', '/valid_promotions?target=' + origParentNode.id + "-" + destParentNode.id + "&game_id=" + {{ .Name }});
-                xhr.onload = function () {
-                    if (xhr.status !== 200) {
-                        shake(document.getElementById("board-div"));
-                    } else {
-                        var images = xhr.responseText.split(",");
-                        var x= 0;
-                        function displayNextPromotion() {
-                            x = (x === images.length - 1) ? 0 : x + 1;
-                            elem.src = images[x];
-                            elem.setAttribute(
-                                "onClick", "promote("+origParentNode.id+","+ destParentNode.id+ ",'" +elem.src.split("-")[0].slice(-1) + "')");
-                        }
-                        function startTimer() {
-                            timer = setInterval(displayNextPromotion, 1000);
-                        }
-                        destParentNode.replaceChild(elem, ev.target);
-                        startTimer()
-                    }
-                };
-                xhr.send();
+                getPormotions(ev)
             } else {
-                xhr = new XMLHttpRequest();
-                xhr.open('POST', '/move?target=' + origParentNode.id + "-" + destParentNode.id + "&game_id=" + {{ .Name }});
-                xhr.onload = function () {
-                    if (xhr.status !== 200) {
-                        shake(document.getElementById("board-div"));
-                    } else {
-                        document.getElementById("board-div").innerHTML = xhr.responseText
-                    }
+                var msg = {
+                    Type: "move",
+                    Target: origParentNode.id + "-" + destParentNode.id,
+                    AggregateId: gameId
                 };
-                xhr.send();
+                ws.send(JSON.stringify(msg));
             }
         }
     </script>

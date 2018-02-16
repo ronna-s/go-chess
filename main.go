@@ -1,77 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
-	"fmt"
-
 	"github.com/wwgberlin/go-event-sourcing-exercise/chess"
+	"golang.org/x/net/websocket"
 )
-
-const (
-	EventMove int = iota
-	EventPromotion
-	EventRollback
-)
-
-type Event struct {
-	id          int
-	aggregateID string
-	eventData   string
-	eventType   int
-}
-
-type Page struct {
-	Name  string
-	Board [][]chess.Square
-}
-
-var events []Event
-
-func nextID(events []Event) int {
-	if len(events) == 0 {
-		return 0
-	}
-	return events[len(events)-1].id + 1
-}
 
 func main() {
-	http.Handle("/images/", http.StripPrefix("/", http.FileServer(http.Dir("./public"))))
+	cmd := newCmd()
+	cmd.run()
+	api := newApi(cmd)
 
-	http.HandleFunc("/debug", debugHandler)
-	http.HandleFunc("/move", moveHandler)
-	http.HandleFunc("/promote", promoteHandler)
-	http.HandleFunc("/game", gameHandler)
-	http.HandleFunc("/game/", newGameHandler)
-	http.HandleFunc("/create", createGameHandler)
-	http.HandleFunc("/replay", replayHandler)
-	http.HandleFunc("/events", eventIDsHandler)
-	http.HandleFunc("/valid_promotions", validPromotionsHandler)
+	http.Handle("/images/", http.StripPrefix("/", http.FileServer(http.Dir("./public/static"))))
+	http.HandleFunc("/debug", api.debugHandler)
+	http.HandleFunc("/game", api.gameHandler)
+	http.HandleFunc("/board", api.boardHandler)
+	http.HandleFunc("/game/", api.newGameHandler)
+	http.HandleFunc("/create", api.createGameHandler)
+	http.HandleFunc("/replay", api.replayHandler)
+	http.HandleFunc("/events", api.eventIDsHandler)
+	http.HandleFunc("/promotions", api.promotionsHandler)
+
+	http.Handle("/ws", websocket.Handler(api.wsHandler))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func buildGame(events []Event, gameID string) *chess.Game {
-	game := chess.NewGame()
-
-	for _, event := range events {
-		if event.aggregateID != gameID {
-			continue
-		}
-
-		switch event.eventType {
-		case EventMove:
-			game.Move(parseMove(event.eventData))
-		case EventPromotion:
-			if err := game.Promote(parsePromotion(event.eventData)); err != nil {
-				panic(err)
-			}
-		case EventRollback:
-			//todo
-		}
-	}
-	return game
 }
 
 func parseMove(query string) chess.Move {

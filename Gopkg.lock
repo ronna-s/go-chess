@@ -7,9 +7,15 @@
   packages = ["."]
   revision = "3c94dbc3873f3eba4bfe7d7edeaa5de5f0884ad8"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["websocket"]
+  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6159ec801dbb1a616c6a1c6586f2f1b4564aa3696badcaece34851189dd0ebce"
+  inputs-digest = "291c31f044957a5beab7c119812fb1ec3e997a73c9510875de5b555c48a6ebec"
   solver-name = "gps-cdcl"
   solver-version = 1
