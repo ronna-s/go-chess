@@ -7,8 +7,14 @@ import (
 )
 
 type (
+	game interface {
+		ValidMoves() []*chess.Move
+		Move(*chess.Move) error
+		Position() *chess.Position
+		Outcome() chess.Outcome
+	}
 	Game struct {
-		ptr *chess.Game
+		ptr game
 	}
 )
 

@@ -97,18 +97,25 @@
                     shake(document.getElementById("board-div"));
                 } else {
                     var images = xhr.responseText.split(",");
-                    var x= 0;
-                    function displayNextPromotion() {
-                        x = (x === images.length - 1) ? 0 : x + 1;
-                        elem.src = images[x];
-                        elem.setAttribute(
-                                "onClick", "promote("+origParentNode.id+","+ destParentNode.id+ ",'" +elem.src.split("-")[0].slice(-1) + "')");
+                    if (images[0] === "") {
+                        shake(document.getElementById("board-div"))
+                    } else {
+                        var x = 0;
+
+                        function displayNextPromotion() {
+                            x = (x === images.length - 1) ? 0 : x + 1;
+                            elem.src = images[x];
+                            elem.setAttribute(
+                                    "onClick", "promote(" + origParentNode.id + "," + destParentNode.id + ",'" + elem.src.split("-")[0].slice(-1) + "')");
+                        }
+
+                        function startTimer() {
+                            timer = setInterval(displayNextPromotion, 1000);
+                        }
+
+                        destParentNode.replaceChild(elem, ev.target);
+                        startTimer()
                     }
-                    function startTimer() {
-                        timer = setInterval(displayNextPromotion, 1000);
-                    }
-                    destParentNode.replaceChild(elem, ev.target);
-                    startTimer()
                 }
             };
             xhr.send();
