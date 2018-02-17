@@ -12,6 +12,7 @@ type (
 		Move(*chess.Move) error
 		Position() *chess.Position
 		Outcome() chess.Outcome
+		Moves() []*chess.Move
 	}
 	Game struct {
 		ptr game
@@ -28,8 +29,7 @@ func (g *Game) Move(m Move) error {
 		move := validMoves[i]
 		if move.S1() == chess.Square(m.from) &&
 			move.S2() == chess.Square(m.to) {
-			g.ptr.Move(move)
-			return nil
+			return g.ptr.Move(move)
 		}
 	}
 	return errors.New("move is invalid")
@@ -42,11 +42,21 @@ func (g *Game) Promote(p Promotion) error {
 		if move.S1() == chess.Square(p.from) &&
 			move.S2() == chess.Square(p.to) &&
 			move.Promo().String() == p.newPiece {
-			g.ptr.Move(move)
-			return nil
+			return g.ptr.Move(move)
 		}
 	}
 	return errors.New("promotion is invalid")
+}
+
+func (g *Game) Moves() []string {
+	newGame := chess.NewGame()
+	strs := make([]string, len(g.ptr.Moves()))
+	moves := g.ptr.Moves()
+	for i := range moves {
+		strs[i] = chess.AlgebraicNotation{}.Encode(newGame.Position(), moves[i])
+		newGame.Move(moves[i])
+	}
+	return strs
 }
 
 func (g *Game) Draw() [][]Square {

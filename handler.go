@@ -19,10 +19,13 @@ import (
 type api struct {
 	cmd *cmd
 }
-
+type Board struct {
+	Squares [][]chess.Square
+	Moves   []string
+}
 type page struct {
 	Name  string
-	Board [][]chess.Square
+	Board Board
 }
 
 type msg struct {
@@ -127,7 +130,8 @@ func (a *api) gameHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tpl bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
-	if err := t.ExecuteTemplate(&tpl, "base", page{gameID, game.Draw()}); err != nil {
+	if err := t.ExecuteTemplate(&tpl, "base", page{
+		Name: gameID, Board: Board{Squares: game.Draw(), Moves: game.Moves()}}); err != nil {
 		panic(err)
 	}
 	w.Write(tpl.Bytes())
@@ -139,7 +143,7 @@ func (a *api) boardHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tpl bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/board.tmpl"))
-	if err := t.ExecuteTemplate(&tpl, "board", game.Draw()); err != nil {
+	if err := t.ExecuteTemplate(&tpl, "board", Board{game.Draw(), game.Moves()}); err != nil {
 		panic(err)
 	}
 	w.Write(tpl.Bytes())
@@ -196,7 +200,7 @@ func (a *api) replayHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	var tpl bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
-	if err := t.ExecuteTemplate(&tpl, "base", page{gameID, game.Draw()}); err != nil {
+	if err := t.ExecuteTemplate(&tpl, "base", page{Name: gameID, Board: Board{Squares: game.Draw(), Moves: game.Moves()}}); err != nil {
 		panic(err)
 	}
 	w.Write(tpl.Bytes())

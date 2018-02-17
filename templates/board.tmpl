@@ -1,6 +1,6 @@
 {{define "board"}}
-<table id="board">
-{{ range . }}
+<table id="board" style="float: left">
+{{ range .Squares }}
     <tr>
     {{ range . }}
         <td height="70px" id="{{.Pos}}"
@@ -18,5 +18,13 @@
     </tr>
 {{ end }}
 
+</table>
+<table style="float: left;">
+    <tr>
+        <th>Moves</th>
+    </tr>
+    {{ range .Moves}}
+        <tr><td>{{.}}</td></tr>
+    {{end}}
 </table>
 {{end}}
