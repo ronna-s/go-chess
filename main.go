@@ -18,7 +18,7 @@ func main() {
 	http.HandleFunc("/debug", api.debugHandler)
 	http.HandleFunc("/game", api.gameHandler)
 	http.HandleFunc("/board", api.boardHandler)
-	http.HandleFunc("/game/", api.newGameHandler)
+	http.HandleFunc("/", api.newGameHandler)
 	http.HandleFunc("/create", api.createGameHandler)
 	http.HandleFunc("/replay", api.replayHandler)
 	http.HandleFunc("/events", api.eventIDsHandler)

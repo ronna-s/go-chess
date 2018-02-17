@@ -3,7 +3,7 @@
     <script>
         function newgame() {
             xhr = new XMLHttpRequest();
-            xhr.open('GET', '/create');
+            xhr.open('POST', '/create');
             xhr.send();
             xhr.onreadystatechange = function() {
                 window.location.href = xhr.getResponseHeader("Location");
@@ -11,7 +11,12 @@
         }
 
         function gotogame() {
-            window.location.href = '/game?game_id=' + document.getElementById('game_name_input').value
+            var gameName = document.getElementById('game_name_input').value;
+            if (gameName === ""){
+                newgame();
+            }else{
+                window.location.href = '/game?game_id=' + document.getElementById('game_name_input').value
+            }
         }
     </script>
 </head>
