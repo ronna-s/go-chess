@@ -8,6 +8,9 @@ const (
 	EventPromotionRequest
 	EventPromotionSuccess
 	EventPromotionFail
+	EventWhiteWins
+	EventBlackWins
+	EventDraw
 )
 
 type Event struct {

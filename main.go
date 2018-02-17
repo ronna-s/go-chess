@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/replay", api.replayHandler)
 	http.HandleFunc("/events", api.eventIDsHandler)
 	http.HandleFunc("/promotions", api.promotionsHandler)
+	http.HandleFunc("/scores", api.scoreHandler)
 
 	http.Handle("/ws", websocket.Handler(api.wsHandler))
 

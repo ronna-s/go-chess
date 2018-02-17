@@ -35,6 +35,7 @@ func newApi(cmd *cmd) *api {
 	a := api{cmd: cmd}
 	cmd.register(newSubscriber(a.moveSub))
 	cmd.register(newSubscriber(a.promoteSub))
+	cmd.register(newSubscriber(a.statusChange))
 
 	return &a
 }
@@ -266,4 +267,13 @@ func (a *api) wsHandler(ws *websocket.Conn) {
 		}
 		a.cmd.eventsCh <- a.handleMessage(ws, m)
 	}
+}
+
+func (a *api) scoreHandler(w http.ResponseWriter, r *http.Request) {
+	data := a.buildScores()
+	output, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err)
+	}
+	w.Write(output)
 }
