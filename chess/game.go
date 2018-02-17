@@ -87,3 +87,19 @@ func (g *Game) ValidPromotions(m Move) (pieces []piece) {
 	}
 	return
 }
+
+// 0 ongoing
+// 1 - won by white
+// 2 - won by black
+// 3 - draw
+func (g *Game) Status() int {
+	switch g.ptr.Outcome() {
+	case "1-0":
+		return 1
+	case "0-1":
+		return 2
+	case "1/2-1/2":
+		return 3
+	}
+	return 0
+}
