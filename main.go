@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/wwgberlin/go-event-sourcing-exercise/chess"
+	"github.com/wwgberlin/go-event-sourcing-exercise/db"
 	"golang.org/x/net/websocket"
 )
 
 func main() {
-	cmd := newCmd()
-	cmd.run()
-	api := newApi(cmd)
+	db := db.NewEventStore()
+	db.Run()
+	api := newApi(db)
 
 	http.Handle("/images/", http.StripPrefix("/", http.FileServer(http.Dir("./public/static"))))
 	http.HandleFunc("/debug", api.debugHandler)
@@ -28,25 +27,4 @@ func main() {
 	http.Handle("/ws", websocket.Handler(api.wsHandler))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func parseMove(query string) chess.Move {
-	var from, to int
-	if _, err := fmt.Sscanf(query, "%d-%d", &from, &to); err != nil {
-		log.Println(err)
-	}
-	return chess.NewMove(from, to)
-}
-
-func parsePromotion(query string) chess.Promotion {
-	var (
-		from, to int
-		newPiece string
-	)
-
-	if _, err := fmt.Sscanf(query, "%d-%d-%s", &from, &to, &newPiece); err != nil {
-		log.Println(err)
-	}
-
-	return chess.NewPromotion(from, to, newPiece)
 }
