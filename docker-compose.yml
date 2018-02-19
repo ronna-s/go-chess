@@ -1,7 +1,0 @@
-version: '2.1'
-
-  service:
-    build:
-      context: .
-    ports:
-      - "8080:8080"
