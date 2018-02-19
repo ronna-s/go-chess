@@ -16,6 +16,17 @@
         var gameId = "{{ .Name}}";
 
         var ws = new WebSocket("ws://127.0.0.1:8080/ws");
+
+        ws.onclose = function (ev) {
+            var newWs = new WebSocket("ws://127.0.0.1:8080/ws");
+            newWs.onmessage = ws.onmessage;
+            newWs.onclose = ws.onclose;
+            newWs.onopen = ws.onopen;
+            ws = newWs
+        };
+        ws.onopen = function (ev) {
+            renderBoard();
+        };
         ws.onmessage = function(event) {
             var board = document.getElementById("board-div");
             switch(event.data) {
@@ -23,19 +34,23 @@
                     shake(board);
                     break;
                 case "1":
-                    xhr = new XMLHttpRequest();
-                    xhr.open('GET', '/board?game_id=' + gameId);
-                    xhr.onload = function () {
-                        if (xhr.status !== 200) {
-                            shake(document.getElementById("board-div"));
-                        } else {
-                            clearInterval(timer);
-                            document.getElementById("board-div").innerHTML = xhr.responseText
-                        }
-                    };
-                    xhr.send();
+                    renderBoard();
             }
         };
+
+        function renderBoard() {
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', '/board?game_id=' + gameId);
+            xhr.onload = function () {
+                if (xhr.status !== 200) {
+                    shake(document.getElementById("board-div"));
+                } else {
+                    clearInterval(timer);
+                    document.getElementById("board-div").innerHTML = xhr.responseText
+                }
+            };
+            xhr.send();
+        }
         var shake = function (element, magnitude = 16) {
             var counter = 1;
             var numberOfShakes = 15;
