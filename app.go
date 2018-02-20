@@ -178,7 +178,8 @@ func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) store.EventHandl
 			if e.AggregateID == gameId {
 				switch e.EventType {
 				case handlers.EventMoveSuccess,
-					handlers.EventPromotionSuccess:
+					handlers.EventPromotionSuccess,
+					handlers.EventRollback:
 					ws.Write([]byte("1"))
 				case handlers.EventMoveFail,
 					handlers.EventPromotionFail:
@@ -212,6 +213,8 @@ func (a *app) wsHandler(ws *websocket.Conn) {
 			e.EventType = handlers.EventMoveRequest
 		case "promote":
 			e.EventType = handlers.EventPromotionRequest
+		case "rollback":
+			e.EventType = handlers.EventRollback
 		default:
 			continue
 		}

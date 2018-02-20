@@ -16,6 +16,7 @@ const (
 	EventWhiteWins
 	EventBlackWins
 	EventDraw
+	EventRollback
 )
 
 func filterGameMoveEvents(events []store.Event, gameID string) []store.Event {
