@@ -39,11 +39,20 @@ func BuildGame(eventStore *store.EventStore, gameID string, lastMove int) *chess
 
 	events := filterGameMoveEvents(eventStore.GetEvents(), gameID)
 
+	var finalizedEvents []store.Event
 	for i, event := range events {
 		if i == lastMove {
 			break
 		}
 
+		if event.EventType == EventRollback && len(finalizedEvents) > 1 {
+			finalizedEvents = finalizedEvents[:len(finalizedEvents)-2]
+			continue
+		}
+		finalizedEvents = append(finalizedEvents, event)
+	}
+
+	for _, event := range finalizedEvents {
 		switch event.EventType {
 		case EventMoveSuccess:
 			game.Move(chess.ParseMove(event.EventData))
