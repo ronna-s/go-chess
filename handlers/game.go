@@ -18,12 +18,29 @@ const (
 	EventDraw
 )
 
-func BuildGame(eventStore *store.EventStore, gameID string, lastEventID int) *chess.Game {
-	game := chess.NewGame()
-
-	for _, event := range eventStore.GetEvents() {
+func filterGameMoveEvents(events []store.Event, gameID string) []store.Event {
+	var res []store.Event
+	for _, event := range events {
 		if event.AggregateID != gameID {
 			continue
+		}
+		if event.EventType == EventMoveSuccess ||
+			event.EventType == EventPromotionSuccess {
+			res = append(res, event)
+		}
+	}
+	return res
+
+}
+
+func BuildGame(eventStore *store.EventStore, gameID string, lastMove int) *chess.Game {
+	game := chess.NewGame()
+
+	events := filterGameMoveEvents(eventStore.GetEvents(), gameID)
+
+	for i, event := range events {
+		if i == lastMove {
+			break
 		}
 
 		switch event.EventType {

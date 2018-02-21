@@ -86,7 +86,7 @@
             xhr.open(
                     'GET', '/slider?game_id=' +
                     gameId +
-                    '&last_event_id=-1'
+                    '&last_move=-1'
             );
             xhr.onload = function () {
                 if (xhr.status !== 200) {
@@ -98,13 +98,13 @@
             xhr.send();
         }
 
-        function renderBoard(lastEventID) {
+        function renderBoard(lastMove) {
             var xhr = new XMLHttpRequest();
             xhr.open(
                     'GET', '/board?game_id=' +
                     gameId +
-                    '&last_event_id=' +
-                    lastEventID
+                    '&last_move=' +
+                    lastMove
             );
             xhr.onload = function () {
                 if (xhr.status !== 200) {

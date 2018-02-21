@@ -92,13 +92,13 @@ func (a *app) gameHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) boardHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	lastEventIDStr := r.URL.Query().Get("last_event_id")
-	if lastEventID, err := strconv.ParseInt(lastEventIDStr, 10, 32); err != nil {
-		log.Println(err, lastEventIDStr)
+	lastMoveStr := r.URL.Query().Get("last_move")
+	if lastMove, err := strconv.ParseInt(lastMoveStr, 10, 32); err != nil {
+		log.Println(err, lastMoveStr)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store, gameID, int(lastEventID))
+		game := handlers.BuildGame(a.store, gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/board.tmpl"))
@@ -111,13 +111,13 @@ func (a *app) boardHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	lastEventIDStr := r.URL.Query().Get("last_event_id")
-	if lastEventID, err := strconv.ParseInt(lastEventIDStr, 10, 32); err != nil {
-		log.Println(err, lastEventIDStr)
+	lastMoveStr := r.URL.Query().Get("last_move")
+	if lastMove, err := strconv.ParseInt(lastMoveStr, 10, 32); err != nil {
+		log.Println(err, lastMoveStr)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store, gameID, int(lastEventID))
+		game := handlers.BuildGame(a.store, gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/slider.tmpl"))
