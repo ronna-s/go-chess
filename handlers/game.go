@@ -16,6 +16,7 @@ const (
 	EventWhiteWins
 	EventBlackWins
 	EventDraw
+	EventRollback
 )
 
 func filterGameMoveEvents(events []store.Event, gameID string) []store.Event {
@@ -24,6 +25,12 @@ func filterGameMoveEvents(events []store.Event, gameID string) []store.Event {
 		if event.AggregateID != gameID {
 			continue
 		}
+
+		if event.EventType == EventRollback && len(res) > 0 {
+			res = res[:len(res)-1]
+			continue
+		}
+
 		if event.EventType == EventMoveSuccess ||
 			event.EventType == EventPromotionSuccess {
 			res = append(res, event)

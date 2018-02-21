@@ -157,6 +157,23 @@
             ev.dataTransfer.setData("text", ev.target.id);
         }
 
+        function promote(origPos, newPos, newPiece) {
+            var msg = {
+                Type: "promote",
+                Target: origPos + "-" + newPos + "-" + newPiece,
+                AggregateId: gameId
+            };
+            ws.send(JSON.stringify(msg));
+        }
+        
+        function rollback() {
+            var msg = {
+                Type: "rollback",
+                AggregateId: gameId
+            };
+            ws.send(JSON.stringify(msg));
+        }
+
         function getPormotions(ev) {
             var elem = document.getElementById(ev.dataTransfer.getData("text"));
             var origParentNode = elem.parentNode;
