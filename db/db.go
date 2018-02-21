@@ -1,5 +1,7 @@
 package db
 
+import "log"
+
 type EventStore struct {
 	events       []Event
 	eventsCh     chan Event
@@ -30,7 +32,7 @@ func (store *EventStore) Run() {
 				e.Id = store.nextID(store.events)
 				store.events = append(store.events, e)
 				for _, s := range store.handlers {
-					go s.cb(store, e)
+					s.cb(store, e)
 				}
 			case reg := <-store.registerCh:
 				store.handlers = append(store.handlers, reg)
@@ -38,10 +40,10 @@ func (store *EventStore) Run() {
 				for i := range store.handlers {
 					if unreg == store.handlers[i] {
 						store.handlers = append(store.handlers[:i], store.handlers[i+1:]...)
-						return
+						log.Println("event handler deregistered")
+						break
 					}
 				}
-				panic("callback not found")
 			}
 		}
 	}()
@@ -55,13 +57,19 @@ func (store *EventStore) nextID(events []Event) int {
 }
 
 func (store *EventStore) Persist(e Event) {
-	store.eventsCh <- e
+	go func() {
+		store.eventsCh <- e
+	}()
 }
 
 func (store *EventStore) Register(s EventHandler) {
-	store.registerCh <- s
+	go func() {
+		store.registerCh <- s
+	}()
 }
 
 func (store *EventStore) Deregister(s EventHandler) {
-	store.unregisterCh <- s
+	go func() {
+		store.unregisterCh <- s
+	}()
 }

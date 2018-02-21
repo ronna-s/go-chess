@@ -10,14 +10,46 @@
             bottom: 2px;
         }
 
+        /* The slider itself */
+        .slider {
+            appearance: none;
+            width: 594px; /* Full-width */
+            height: 25px; /* Specified height */
+            background: #d3d3d3; /* Grey background */
+            outline: none; /* Remove outline */
+            opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+            -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+            transition: opacity .2s;
+        }
+
+        /* Mouse-over effects */
+        .slider:hover {
+            opacity: 1; /* Fully shown on mouse-over */
+        }
+
+        /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+        }
     </style>
     <script>
         var timer;
         var gameId = "{{ .Name}}";
 
         var ws = new WebSocket("ws://127.0.0.1:8080/ws");
-
         ws.onclose = function (ev) {
+            console.log("onclose")
             var newWs = new WebSocket("ws://127.0.0.1:8080/ws");
             newWs.onmessage = ws.onmessage;
             newWs.onclose = ws.onclose;
@@ -25,6 +57,10 @@
             ws = newWs
         };
         ws.onopen = function (ev) {
+            ws.send(JSON.stringify({
+                Type: "hi",
+                AggregateId: gameId
+            }));
             renderBoard();
         };
         ws.onmessage = function(event) {
@@ -91,15 +127,6 @@
             ev.dataTransfer.setData("text", ev.target.id);
         }
 
-        function promote(origPos, newPos, newPiece) {
-            var msg = {
-                Type: "promote",
-                Target: origPos + "-" + newPos + "-" + newPiece,
-                AggregateId: gameId
-            };
-            ws.send(JSON.stringify(msg));
-        }
-
         function getPormotions(ev) {
             var elem = document.getElementById(ev.dataTransfer.getData("text"));
             var origParentNode = elem.parentNode;
@@ -136,6 +163,15 @@
             xhr.send();
         }
 
+        function promote(origPos, newPos, newPiece) {
+            var msg = {
+                Type: "promote",
+                Data: origPos + "-" + newPos + "-" + newPiece,
+                AggregateId: gameId
+            };
+            ws.send(JSON.stringify(msg));
+        }
+
         function move(ev) {
             ev.preventDefault();
             var elem = document.getElementById(ev.dataTransfer.getData("text"));
@@ -149,8 +185,8 @@
             } else {
                 var msg = {
                     Type: "move",
-                    Target: origParentNode.id + "-" + destParentNode.id,
-                    AggregateId: gameId
+                    Data: origParentNode.id + "-" + destParentNode.id,
+                    GameID: gameId
                 };
                 ws.send(JSON.stringify(msg));
             }
@@ -162,8 +198,13 @@
     Game name: {{ .Name }}
 </div>
 <div id="board-div">
-    {{template "board" .Board}}
 </div>
+{{$length := len .Board.Moves}}
+{{ if ne $length 0 }}
+<div class="slidecontainer" style="clear: left;">
+    <input type="range" min="0" max="{{len .Board.Moves}}" value="{{len .Board.Moves}}" class="slider" id="myRange">
+</div>
+{{ end }}
 </body>
 </html>
 {{end}}

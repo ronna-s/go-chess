@@ -10,7 +10,8 @@
         {{ end }}
             ondrop="move(event)" ondragover="allowDrop(event)">
         {{if ne .Piece.ImagePath ""}}
-            <img id="piece_{{.Pos}}" class="{{.Piece.Id}}_{{.Piece.Color}}" draggable="true" ondragstart="drag(event)"
+            <img id="piece_{{.Pos}}" class="{{.Piece.Id}}_{{.Piece.Color}}" draggable="true"
+                 ondragstart="drag(event)"
                  src={{.Piece.ImagePath}} width="70px"/>
         {{end}}
         </td>
@@ -23,8 +24,10 @@
     <tr>
         <th>Moves</th>
     </tr>
-    {{ range .Moves}}
-        <tr><td>{{.}}</td></tr>
-    {{end}}
+{{ range .Moves}}
+    <tr>
+        <td>{{.}}</td>
+    </tr>
+{{end}}
 </table>
 {{end}}

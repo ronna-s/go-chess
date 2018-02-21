@@ -31,9 +31,16 @@ type page struct {
 }
 
 type msg struct {
-	Target      string
 	AggregateId string
 	Type        string
+	Data        string
+}
+
+func (m msg) String() string {
+	return fmt.Sprintf(
+		"Data=%s AggregateID=%s Type=%s",
+		m.Data, m.AggregateId, m.Type,
+	)
 }
 
 func newApi(d *db.EventStore) *app {
@@ -165,10 +172,10 @@ func (a *app) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (a *app) pageSubscriber(ws *websocket.Conn, m msg) db.EventHandler {
+func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) db.EventHandler {
 	return db.NewEventHandler(
 		func(eventStore *db.EventStore, e db.Event) {
-			if e.AggregateID == m.AggregateId {
+			if e.AggregateID == gameId {
 				switch e.EventType {
 				case handlers.EventMoveSuccess,
 					handlers.EventPromotionSuccess:
@@ -180,15 +187,26 @@ func (a *app) pageSubscriber(ws *websocket.Conn, m msg) db.EventHandler {
 			}
 		})
 }
+
 func (a *app) wsHandler(ws *websocket.Conn) {
+	log.Println("websocket connection initiated")
+
 	var m msg
 	if err := websocket.JSON.Receive(ws, &m); err != nil {
+		log.Println("failed reading json from websocket... closing connection")
 		return
 	}
-	sub := a.pageSubscriber(ws, m)
+
+	log.Println(m)
+	sub := a.wsEventHandler(ws, m.AggregateId)
 	a.db.Register(sub)
 	for {
-		e := db.Event{AggregateID: m.AggregateId, EventData: m.Target}
+		if err := websocket.JSON.Receive(ws, &m); err != nil {
+			a.db.Deregister(sub)
+			log.Println("websocket closed or json invalid... closing connection")
+			return
+		}
+		e := db.Event{AggregateID: m.AggregateId, EventData: m.Data}
 		switch m.Type {
 		case "move":
 			e.EventType = handlers.EventMoveRequest
@@ -198,11 +216,6 @@ func (a *app) wsHandler(ws *websocket.Conn) {
 			continue
 		}
 		a.db.Persist(e)
-		if err := websocket.JSON.Receive(ws, &m); err != nil {
-			a.db.Deregister(sub)
-			fmt.Println("closed")
-			return
-		}
 	}
 }
 
