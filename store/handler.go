@@ -1,4 +1,4 @@
-package db
+package store
 
 type EventHandler interface {
 	cb(*EventStore, Event)

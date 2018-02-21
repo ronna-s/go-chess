@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/wwgberlin/go-event-sourcing-exercise/db"
+	"github.com/wwgberlin/go-event-sourcing-exercise/store"
 )
 
 type score struct {
@@ -11,7 +11,7 @@ type score struct {
 	Type     string
 }
 
-func BuildScores(eventStore *db.EventStore) []score {
+func BuildScores(eventStore *store.EventStore) []score {
 	var scores []score
 	names := make(map[string]int)
 	for _, event := range eventStore.GetEvents() {

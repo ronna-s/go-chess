@@ -1,4 +1,4 @@
-package db
+package store
 
 type Event struct {
 	Id          int

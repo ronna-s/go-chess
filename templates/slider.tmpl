@@ -1,0 +1,7 @@
+{{ define "slider"}}
+
+{{$length := .}}
+{{if ne $length 0}}
+<input id="movesRange" type="range" min="0" max="{{$length}}" onchange="renderBoard(this.value)" value="{{$length}}" class="slider">
+{{end}}
+{{end }}

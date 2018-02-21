@@ -49,20 +49,26 @@
 
         var ws = new WebSocket("ws://127.0.0.1:8080/ws");
         ws.onclose = function (ev) {
-            console.log("onclose")
             var newWs = new WebSocket("ws://127.0.0.1:8080/ws");
             newWs.onmessage = ws.onmessage;
             newWs.onclose = ws.onclose;
             newWs.onopen = ws.onopen;
             ws = newWs
         };
+
         ws.onopen = function (ev) {
             ws.send(JSON.stringify({
-                Type: "hi",
+                Type: "hello",
                 AggregateId: gameId
             }));
-            renderBoard();
+            if (document.getElementById("movesRange") == null) {
+                renderBoard(-1);
+            } else {
+                renderBoard(document.getElementById("movesRange").value);
+                renderSlider();
+            }
         };
+
         ws.onmessage = function(event) {
             var board = document.getElementById("board-div");
             switch(event.data) {
@@ -70,13 +76,36 @@
                     shake(board);
                     break;
                 case "1":
-                    renderBoard();
+                    renderBoard(-1);
+                    renderSlider()
             }
         };
 
-        function renderBoard() {
-            xhr = new XMLHttpRequest();
-            xhr.open('GET', '/board?game_id=' + gameId);
+        function renderSlider() {
+            var xhr = new XMLHttpRequest();
+            xhr.open(
+                    'GET', '/slider?game_id=' +
+                    gameId +
+                    '&last_event_id=-1'
+            );
+            xhr.onload = function () {
+                if (xhr.status !== 200) {
+                    alert("something went wrong, sorry :(")
+                } else {
+                    document.getElementById("slider-container").innerHTML = xhr.responseText
+                }
+            };
+            xhr.send();
+        }
+
+        function renderBoard(lastEventID) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(
+                    'GET', '/board?game_id=' +
+                    gameId +
+                    '&last_event_id=' +
+                    lastEventID
+            );
             xhr.onload = function () {
                 if (xhr.status !== 200) {
                     shake(document.getElementById("board-div"));
@@ -87,6 +116,7 @@
             };
             xhr.send();
         }
+
         var shake = function (element, magnitude = 16) {
             var counter = 1;
             var numberOfShakes = 15;
@@ -199,12 +229,9 @@
 </div>
 <div id="board-div">
 </div>
-{{$length := len .Board.Moves}}
-{{ if ne $length 0 }}
-<div class="slidecontainer" style="clear: left;">
-    <input type="range" min="0" max="{{len .Board.Moves}}" value="{{len .Board.Moves}}" class="slider" id="myRange">
+
+<div id="slider-container" class="slidecontainer" style="clear: left;">
 </div>
-{{ end }}
 </body>
 </html>
 {{end}}

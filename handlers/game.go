@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/wwgberlin/go-event-sourcing-exercise/chess"
-	"github.com/wwgberlin/go-event-sourcing-exercise/db"
+	"github.com/wwgberlin/go-event-sourcing-exercise/store"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	EventDraw
 )
 
-func BuildGame(eventStore *db.EventStore, gameID string) *chess.Game {
+func BuildGame(eventStore *store.EventStore, gameID string, lastEventID int) *chess.Game {
 	game := chess.NewGame()
 
 	for _, event := range eventStore.GetEvents() {
@@ -36,13 +36,13 @@ func BuildGame(eventStore *db.EventStore, gameID string) *chess.Game {
 	return game
 }
 
-func MoveHandler(eventStore *db.EventStore, event db.Event) {
+func MoveHandler(eventStore *store.EventStore, event store.Event) {
 	if event.EventType != EventMoveRequest {
 		return
 	}
-	game := BuildGame(eventStore, event.AggregateID)
+	game := BuildGame(eventStore, event.AggregateID, -1)
 
-	ev := db.Event{
+	ev := store.Event{
 		AggregateID: event.AggregateID,
 	}
 	if err := game.Move(chess.ParseMove(event.EventData)); err != nil {
@@ -55,13 +55,13 @@ func MoveHandler(eventStore *db.EventStore, event db.Event) {
 	eventStore.Persist(ev)
 }
 
-func PromotionHandler(eventStore *db.EventStore, event db.Event) {
+func PromotionHandler(eventStore *store.EventStore, event store.Event) {
 	if event.EventType != EventPromotionRequest {
 		return
 	}
-	game := BuildGame(eventStore, event.AggregateID)
+	game := BuildGame(eventStore, event.AggregateID, -1)
 
-	ev := db.Event{
+	ev := store.Event{
 		AggregateID: event.AggregateID,
 	}
 	if err := game.Promote(chess.ParsePromotion(event.EventData)); err != nil {
@@ -74,14 +74,14 @@ func PromotionHandler(eventStore *db.EventStore, event db.Event) {
 	eventStore.Persist(ev)
 }
 
-func StatusChangeHandler(eventStore *db.EventStore, event db.Event) {
-	game := BuildGame(eventStore, event.AggregateID)
+func StatusChangeHandler(eventStore *store.EventStore, event store.Event) {
+	game := BuildGame(eventStore, event.AggregateID, -1)
 	status := game.Status()
 	if status == 0 {
 		return
 	}
 
-	ev := db.Event{
+	ev := store.Event{
 		AggregateID: event.AggregateID,
 		EventData:   event.EventData,
 	}
