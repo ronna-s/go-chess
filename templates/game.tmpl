@@ -13,7 +13,7 @@
         /* The slider itself */
         .slider {
             appearance: none;
-            width: 594px; /* Full-width */
+            width: 554px; /* Full-width */
             height: 25px; /* Specified height */
             background: #d3d3d3; /* Grey background */
             outline: none; /* Remove outline */
@@ -244,11 +244,14 @@
 <div id="name-div">
     Game name: {{ .Name }}
 </div>
-<div id="board-div">
-</div>
 
 <div id="slider-container" class="slidecontainer" style="clear: left;">
 </div>
+
+<div id="board-div">
+</div>
+
 </body>
+<script>renderSlider()</script>
 </html>
 {{end}}

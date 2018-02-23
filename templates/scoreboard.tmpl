@@ -1,0 +1,17 @@
+{{define "score_board"}}
+<br/>
+<br/>
+<h1>Score Board</h1>
+<table width="30%" style="float:left">
+    <tr>
+        <th>Game name</th>
+        <th>Result</th>
+    </tr>
+{{range .}}
+    <tr>
+        <td align="center">{{.GameName}}</td>
+        <td align="center">{{.Type}}</td>
+    </tr>
+{{end}}
+</table>
+{{end}}

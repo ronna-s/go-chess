@@ -24,9 +24,9 @@ func BuildScores(eventStore *store.EventStore) []score {
 		}
 		switch eventType {
 		case EventWhiteWins:
-			s.Type = "PinkWins"
+			s.Type = "Blue won"
 		case EventBlackWins:
-			s.Type = "BlueWins"
+			s.Type = "Pink won"
 		case EventDraw:
 			s.Type = "Draw"
 		}

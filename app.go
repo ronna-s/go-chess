@@ -224,9 +224,10 @@ func (a *app) wsHandler(ws *websocket.Conn) {
 
 func (a *app) scoreHandler(w http.ResponseWriter, r *http.Request) {
 	data := handlers.BuildScores(a.store)
-	output, err := json.Marshal(data)
-	if err != nil {
-		log.Println(err)
+	var tpl bytes.Buffer
+	t := template.Must(template.ParseFiles("templates/scoreboard.tmpl"))
+	if err := t.ExecuteTemplate(&tpl, "score_board", data); err != nil {
+		panic(err)
 	}
-	w.Write(output)
+	w.Write(tpl.Bytes())
 }
