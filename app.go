@@ -31,19 +31,6 @@ type page struct {
 	Board Board
 }
 
-type msg struct {
-	AggregateId string
-	Type        string
-	Data        string
-}
-
-func (m msg) String() string {
-	return fmt.Sprintf(
-		"Data=%s AggregateID=%s Type=%s",
-		m.Data, m.AggregateId, m.Type,
-	)
-}
-
 func newApi(d *store.EventStore) *app {
 	a := app{store: d}
 	a.store.Register(store.NewEventHandler(handlers.MoveHandler))
@@ -79,7 +66,7 @@ func (a *app) createGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) gameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	game := handlers.BuildGame(a.store, gameID, -1)
+	game := handlers.BuildGame(a.store.Events(), gameID, -1)
 
 	var tpl bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
@@ -98,7 +85,7 @@ func (a *app) boardHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store, gameID, int(lastMove))
+		game := handlers.BuildGame(a.store.Events(), gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/board.tmpl"))
@@ -117,7 +104,7 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store, gameID, int(lastMove))
+		game := handlers.BuildGame(a.store.Events(), gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/slider.tmpl"))
@@ -133,7 +120,7 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 func (a *app) debugHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
 
-	game := handlers.BuildGame(a.store, gameID, -1)
+	game := handlers.BuildGame(a.store.Events(), gameID, -1)
 
 	if _, err := w.Write([]byte(game.Debug())); err != nil {
 		log.Printf("can't write the response: %v", err)
@@ -142,7 +129,7 @@ func (a *app) debugHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	game := handlers.BuildGame(a.store, gameID, -1)
+	game := handlers.BuildGame(a.store.Events(), gameID, -1)
 
 	query := r.URL.Query().Get("target")
 	move := chess.ParseMove(query)
@@ -160,7 +147,7 @@ func (a *app) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 func (a *app) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := r.URL.Query().Get("game_id")
 	var ids []int
-	for _, e := range a.store.GetEvents() {
+	for _, e := range a.store.Events() {
 		if e.AggregateID == gameID {
 			ids = append(ids, e.Id)
 		}
@@ -192,13 +179,17 @@ func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) store.EventHandl
 func (a *app) wsHandler(ws *websocket.Conn) {
 	log.Println("websocket connection initiated")
 
-	var m msg
+	var m struct {
+		AggregateId string
+		Type        string
+		Data        string
+	}
+
 	if err := websocket.JSON.Receive(ws, &m); err != nil {
 		log.Println("failed reading json from websocket... closing connection")
 		return
 	}
 
-	log.Println(m)
 	handler := a.wsEventHandler(ws, m.AggregateId)
 	a.store.Register(handler)
 	for {

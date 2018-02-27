@@ -40,10 +40,10 @@ func filterGameMoveEvents(events []store.Event, gameID string) []store.Event {
 
 }
 
-func BuildGame(eventStore *store.EventStore, gameID string, lastMove int) *chess.Game {
+func BuildGame(events []store.Event, gameID string, lastMove int) *chess.Game {
 	game := chess.NewGame()
 
-	events := filterGameMoveEvents(eventStore.GetEvents(), gameID)
+	events = filterGameMoveEvents(events, gameID)
 
 	for i, event := range events {
 		if i == lastMove {
@@ -64,7 +64,7 @@ func MoveHandler(eventStore *store.EventStore, event store.Event) {
 	if event.EventType != EventMoveRequest {
 		return
 	}
-	game := BuildGame(eventStore, event.AggregateID, -1)
+	game := BuildGame(eventStore.Events(), event.AggregateID, -1)
 
 	ev := store.Event{
 		AggregateID: event.AggregateID,
@@ -83,7 +83,7 @@ func PromotionHandler(eventStore *store.EventStore, event store.Event) {
 	if event.EventType != EventPromotionRequest {
 		return
 	}
-	game := BuildGame(eventStore, event.AggregateID, -1)
+	game := BuildGame(eventStore.Events(), event.AggregateID, -1)
 
 	ev := store.Event{
 		AggregateID: event.AggregateID,
@@ -99,7 +99,7 @@ func PromotionHandler(eventStore *store.EventStore, event store.Event) {
 }
 
 func StatusChangeHandler(eventStore *store.EventStore, event store.Event) {
-	game := BuildGame(eventStore, event.AggregateID, -1)
+	game := BuildGame(eventStore.Events(), event.AggregateID, -1)
 	status := game.Status()
 	if status == 0 {
 		return

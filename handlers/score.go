@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-
 	"github.com/wwgberlin/go-event-sourcing-exercise/store"
 )
 
@@ -14,11 +12,10 @@ type score struct {
 func BuildScores(eventStore *store.EventStore) []score {
 	var scores []score
 	names := make(map[string]int)
-	for _, event := range eventStore.GetEvents() {
+	for _, event := range eventStore.Events() {
 		names[event.AggregateID] = event.EventType
 	}
 	for name, eventType := range names {
-		fmt.Println(name, eventType)
 		s := score{
 			GameName: name,
 		}

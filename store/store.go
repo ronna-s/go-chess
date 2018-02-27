@@ -16,7 +16,7 @@ func NewEventStore() *EventStore {
 	return &c
 }
 
-func (store *EventStore) GetEvents() []Event {
+func (store *EventStore) Events() []Event {
 	return store.events
 }
 
