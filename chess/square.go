@@ -2,7 +2,7 @@ package chess
 
 type (
 	Square struct {
-		Piece piece
+		Piece Piece
 		Color Color
 		Pos   int
 	}

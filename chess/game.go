@@ -23,7 +23,8 @@ func NewGame() *Game {
 	return &Game{chess.NewGame()}
 }
 
-func (g *Game) Move(m Move) error {
+func (g *Game) Move(query string) error {
+	m := parseMove(query)
 	validMoves := g.ptr.ValidMoves()
 	for i := range validMoves {
 		move := validMoves[i]
@@ -35,7 +36,8 @@ func (g *Game) Move(m Move) error {
 	return errors.New("move is invalid")
 }
 
-func (g *Game) Promote(p Promotion) error {
+func (g *Game) Promote(query string) error {
+	p := parsePromotion(query)
 	validMoves := g.ptr.ValidMoves()
 	for i := range validMoves {
 		move := validMoves[i]
@@ -79,26 +81,24 @@ func (g *Game) Draw() [][]Square {
 	return board
 }
 
-func (g *Game) getPiece(pos int) piece {
+func (g *Game) getPiece(pos int) Piece {
 	b := g.ptr.Position().Board()
 	return pieces[b.Piece(chess.Square(pos))]
-}
-func (g *Game) Piece(pos int) {
-	g.ptr.Position().Board().Piece(chess.Square(pos))
 }
 
 func (g *Game) Debug() string {
 	return g.ptr.Position().Board().Draw()
 }
 
-func (g *Game) ValidPromotions(m Move) (pieces []piece) {
+func (g *Game) ValidPromotions(query string) (pieces []Piece) {
+	m := parseMove(query)
 	validMoves := g.ptr.ValidMoves()
 	color := g.getPiece(m.from).Color
 	for i := range validMoves {
 		move := validMoves[i]
 		if move.S1() == chess.Square(m.from) &&
 			move.S2() == chess.Square(m.to) {
-			pieces = append(pieces, piece{Id: move.Promo().String(), Color: color})
+			pieces = append(pieces, Piece{ID: move.Promo().String(), Color: color})
 		}
 	}
 	return

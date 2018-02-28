@@ -10,11 +10,11 @@ type (
 	}
 )
 
-func NewMove(from, to int) Move {
+func newMove(from, to int) Move {
 	return Move{from: from, to: to}
 
 }
-func NewPromotion(from, to int, newPiece string) Promotion {
+func newPromotion(from, to int, newPiece string) Promotion {
 	return Promotion{
 		newPiece: newPiece,
 		Move: Move{

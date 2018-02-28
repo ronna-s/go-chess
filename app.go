@@ -8,9 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
-
 	"strconv"
+	"strings"
 
 	"github.com/wwgberlin/go-event-sourcing-exercise/chess"
 	"github.com/wwgberlin/go-event-sourcing-exercise/handlers"
@@ -33,9 +32,26 @@ type page struct {
 
 func newApi(d *store.EventStore) *app {
 	a := app{store: d}
-	a.store.Register(store.NewEventHandler(handlers.MoveHandler))
-	a.store.Register(store.NewEventHandler(handlers.PromotionHandler))
-	a.store.Register(store.NewEventHandler(handlers.StatusChangeHandler))
+
+	cbs := []func(game handlers.Game, event store.Event, eventStore handlers.EventPersister){
+		handlers.MoveHandler,
+		handlers.PromotionHandler,
+		handlers.GameChangedHandler,
+		handlers.RollbackHandler,
+	}
+
+	for i := range cbs {
+		func(i int) {
+			a.store.Register(store.NewEventHandler(
+				func(store *store.EventStore, event store.Event) {
+					events := handlers.FilterGameMoveEvents(store.Events(), event.AggregateID)
+					game := handlers.MustRebuildGame(chess.NewGame(), events, event.AggregateID, -1)
+					cbs[i](game, event, store)
+				},
+			),
+			)
+		}(i)
+	}
 
 	return &a
 }
@@ -66,7 +82,8 @@ func (a *app) createGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) gameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	game := handlers.BuildGame(a.store.Events(), gameID, -1)
+	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
+	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
 
 	var tpl bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
@@ -85,7 +102,8 @@ func (a *app) boardHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store.Events(), gameID, int(lastMove))
+		events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
+		game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/board.tmpl"))
@@ -104,7 +122,8 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		game := handlers.BuildGame(a.store.Events(), gameID, int(lastMove))
+		events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
+		game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, int(lastMove))
 
 		var tpl bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/slider.tmpl"))
@@ -120,7 +139,8 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 func (a *app) debugHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
 
-	game := handlers.BuildGame(a.store.Events(), gameID, -1)
+	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
+	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
 
 	if _, err := w.Write([]byte(game.Debug())); err != nil {
 		log.Printf("can't write the response: %v", err)
@@ -129,11 +149,12 @@ func (a *app) debugHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	game := handlers.BuildGame(a.store.Events(), gameID, -1)
+
+	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
+	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
 
 	query := r.URL.Query().Get("target")
-	move := chess.ParseMove(query)
-	promotions := game.ValidPromotions(move)
+	promotions := game.ValidPromotions(query)
 
 	strs := make([]string, len(promotions))
 	for i := range promotions {
@@ -166,7 +187,7 @@ func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) store.EventHandl
 				switch e.EventType {
 				case handlers.EventMoveSuccess,
 					handlers.EventPromotionSuccess,
-					handlers.EventRollback:
+					handlers.EventRollbackSuccess:
 					ws.Write([]byte("1"))
 				case handlers.EventMoveFail,
 					handlers.EventPromotionFail:
@@ -205,7 +226,7 @@ func (a *app) wsHandler(ws *websocket.Conn) {
 		case "promote":
 			e.EventType = handlers.EventPromotionRequest
 		case "rollback":
-			e.EventType = handlers.EventRollback
+			e.EventType = handlers.EventRollbackRequest
 		default:
 			continue
 		}

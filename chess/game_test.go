@@ -39,7 +39,7 @@ func TestGame_Move(t *testing.T) {
 	f.validMovesFn = func() []*chess.Move {
 		return chess.NewGame().ValidMoves()
 	}
-	if g.Move(NewMove(1, 1)) == nil {
+	if g.Move("1-1") == nil {
 		t.Error("Move should have failed")
 	}
 	f.moveFn = func(move *chess.Move) error {
@@ -48,7 +48,7 @@ func TestGame_Move(t *testing.T) {
 		}
 		return errors.New("some error")
 	}
-	if err := g.Move(NewMove(12, 20)); err == nil {
+	if err := g.Move("12-20"); err == nil {
 		t.Error("move should have failed")
 	} else if err.Error() != "some error" {
 		t.Error("wrong error returned by move")
@@ -56,7 +56,7 @@ func TestGame_Move(t *testing.T) {
 	f.moveFn = func(move *chess.Move) error {
 		return nil
 	}
-	if g.Move(NewMove(6, 21)) != nil {
+	if g.Move("6-21") != nil {
 		t.Error("Move should have succeeded")
 	}
 }
@@ -88,13 +88,13 @@ func TestGame_Promote(t *testing.T) {
 		return nil
 	}
 
-	if err := g.Promote(Promotion{Move{52, 61}, "r"}); err != nil {
+	if err := g.Promote("52-61-r"); err != nil {
 		t.Error("Promotion should have succeeded")
 	}
 	f.moveFn = func(move *chess.Move) error {
 		return nil
 	}
-	if err := g.Promote(Promotion{Move{52, 61}, "r"}); err != nil {
+	if err := g.Promote("52-61-r"); err != nil {
 		t.Error("Promotion should have succeeded")
 	}
 
