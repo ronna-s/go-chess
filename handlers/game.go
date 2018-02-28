@@ -94,7 +94,8 @@ func RollbackHandler(_ Game, event store.Event, eventStore EventPersister) {
 	eventStore.Persist(ev)
 }
 
-// FilterGameMoveEvents is a function that receives events and filters out:
+// FilterGameMoveEvents is a function that receives an events slice and returns a new
+// slice after filtering out:
 // 1. events that do not belong to the gameID (AggregateID field)
 // 2. events that are not of action types (move, promotion)
 // 3. events that have been rolled back
@@ -121,7 +122,7 @@ func FilterGameMoveEvents(events []store.Event, gameID string) []store.Event {
 // MustRebuildGame should receive a game, an events slice, gameID and movesCount
 // iterate over the events and perform actions (Move, Promote) when appropriate
 // stop when you have reached the moves count
-// You can assum moveCount will be -1 to perform all actions
+// You can assume moveCount will be -1 to perform all actions
 func MustRebuildGame(game Game, events []store.Event, gameID string, movesCount int) Game {
 	events = FilterGameMoveEvents(events, gameID)
 
