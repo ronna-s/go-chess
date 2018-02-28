@@ -120,6 +120,7 @@ func FilterGameMoveEvents(events []store.Event, gameID string) []store.Event {
 }
 
 // MustRebuildGame should receive a game, an events slice, gameID and movesCount
+// and returns the game after applying the events to it:
 // iterate over the events and perform actions (Move, Promote) when appropriate
 // stop when you have reached the moves count
 // You can assume moveCount will be -1 to perform all actions
