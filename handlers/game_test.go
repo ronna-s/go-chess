@@ -138,6 +138,22 @@ func TestFilterGameMoveEvents(t *testing.T) {
 	}
 }
 
+func TestFilterGameMoveEventsRollbackOutOfBounds(t *testing.T) {
+	myGameID := "my game"
+
+	events := []store.Event{
+		{EventType: EventMoveSuccess, AggregateID: myGameID},
+		{EventType: EventRollbackSuccess, AggregateID: myGameID},
+		{EventType: EventRollbackSuccess, AggregateID: myGameID},
+	}
+
+	filtered := FilterGameMoveEvents(events, myGameID)
+
+	if !reflect.DeepEqual(filtered, []store.Event{}) {
+		t.Error("expected to return an uninitialzied slice but received", filtered)
+	}
+}
+
 func TestPromotionHandlerBasic(t *testing.T) {
 	var s FakeStore
 	var persisted []store.Event
@@ -276,7 +292,7 @@ func TestRebuildGameNoEvents(t *testing.T) {
 
 }
 
-func TestRebuildGame_MoveEvents(t *testing.T) {
+func TestRebuildGameMoveEvents(t *testing.T) {
 	var queries []string
 	game := &FakeGame{
 		moveFn: func(query string) error {
@@ -309,7 +325,7 @@ func TestRebuildGame_MoveEvents(t *testing.T) {
 
 }
 
-func TestRebuildGame_MovePromotionEvents(t *testing.T) {
+func TestRebuildGameMovePromotionEvents(t *testing.T) {
 	var queries []string
 
 	game := &FakeGame{
@@ -347,7 +363,7 @@ func TestRebuildGame_MovePromotionEvents(t *testing.T) {
 	}
 }
 
-func TestRebuildGame_MovePromotionEventsWithLastMoveID(t *testing.T) {
+func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 	var queries []string
 	game := &FakeGame{
 		moveFn: func(query string) error {
@@ -387,7 +403,7 @@ func TestRebuildGame_MovePromotionEventsWithLastMoveID(t *testing.T) {
 	}
 }
 
-func TestRebuildGame_MovePromotionEventsWithRollback(t *testing.T) {
+func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
 	var queries []string
 	game := &FakeGame{
 		moveFn: func(query string) error {
