@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/wwgberlin/go-event-sourcing-exercise/chess"
-	"github.com/wwgberlin/go-event-sourcing-exercise/handlers"
-	"github.com/wwgberlin/go-event-sourcing-exercise/namegen"
-	"github.com/wwgberlin/go-event-sourcing-exercise/store"
+	"github.com/ronna-s/go-chess/chess"
+	"github.com/ronna-s/go-chess/handlers"
+	"github.com/ronna-s/go-chess/namegen"
+	"github.com/ronna-s/go-chess/store"
 	"golang.org/x/net/websocket"
 )
 

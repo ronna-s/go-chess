@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/wwgberlin/go-event-sourcing-exercise/store"
+	"github.com/ronna-s/go-chess/store"
 )
 
 type score struct {

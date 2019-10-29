@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/wwgberlin/go-event-sourcing-exercise/store"
+	"github.com/ronna-s/go-chess/store"
 	"golang.org/x/net/websocket"
 )
 
