@@ -14,13 +14,14 @@ func main() {
 	api := newApi(store)
 
 	http.Handle("/images/", http.StripPrefix("/", http.FileServer(http.Dir("./public/static"))))
+	http.Handle("/js/", http.StripPrefix("/", http.FileServer(http.Dir("./public/static"))))
+	http.Handle("/css/", http.StripPrefix("/", http.FileServer(http.Dir("./public/static"))))
 	http.HandleFunc("/debug", api.debugHandler)
 	http.HandleFunc("/game", api.gameHandler)
 	http.HandleFunc("/board", api.boardHandler)
 	http.HandleFunc("/slider", api.sliderHandler)
 	http.HandleFunc("/", api.newGameHandler)
 	http.HandleFunc("/create", api.createGameHandler)
-	http.HandleFunc("/events", api.eventIDsHandler)
 	http.HandleFunc("/promotions", api.promotionsHandler)
 	http.HandleFunc("/scores", api.scoreHandler)
 

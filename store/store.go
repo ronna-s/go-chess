@@ -1,7 +1,5 @@
 package store
 
-import "log"
-
 type EventStore struct {
 	events       []Event
 	eventsCh     chan Event
@@ -40,7 +38,6 @@ func (store *EventStore) Run() {
 				for i := range store.listeners {
 					if unreg == store.listeners[i] {
 						store.listeners = append(store.listeners[:i], store.listeners[i+1:]...)
-						log.Println("event handler deregistered")
 						break
 					}
 				}

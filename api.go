@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -59,7 +58,7 @@ func newApi(d *store.EventStore) *api {
 func (a *api) getOrGenerateGameName(gameID string) string {
 	if gameID == "" {
 		gameID = namegen.Generate()
-		log.Println(fmt.Errorf("New game created: %s", gameID))
+		log.Println("New game created:", gameID)
 	}
 	return gameID
 }
@@ -75,7 +74,7 @@ func (a *api) newGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *api) createGameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := namegen.Generate()
-	log.Println(fmt.Errorf("New game created: %s", gameID))
+	log.Println("New game created:", gameID)
 
 	w.Header().Add("Location", "/game?game_id="+gameID)
 }
@@ -124,7 +123,6 @@ func (a *api) boardHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		e := store.Event{AggregateID: m.AggregateId, EventData: m.Data}
-		log.Println(m.AggregateId)
 		switch m.Type {
 		case "move":
 			e.EventType = handlers.EventMoveRequest
@@ -190,21 +188,6 @@ func (a *api) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (a *api) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
-	gameID := r.URL.Query().Get("game_id")
-	var ids []int
-	for _, e := range a.store.Events() {
-		if e.AggregateID == gameID {
-			ids = append(ids, e.Id)
-		}
-	}
-	res, err := json.Marshal(ids)
-	if err != nil {
-		log.Println(err)
-	}
-	w.Write(res)
-}
-
 func (a *api) wsEventListener(ws *websocket.Conn, gameId string) *store.EventListener {
 	return store.NewEventHandler(
 		func(eventStore *store.EventStore, e store.Event) {
@@ -217,8 +200,6 @@ func (a *api) wsEventListener(ws *websocket.Conn, gameId string) *store.EventLis
 				case handlers.EventMoveFail,
 					handlers.EventPromotionFail:
 					ws.Write([]byte("0"))
-				default:
-					log.Println("ignoring", e.EventType)
 				}
 			}
 		})

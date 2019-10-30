@@ -112,8 +112,10 @@ func TestMoveHandlerError(t *testing.T) {
 }
 
 func TestFilterGameMoveEvents(t *testing.T) {
-	myGameID := "my game"
-	otherGameID := "other game"
+	const (
+		myGameID    = "my game"
+		otherGameID = "other game"
+	)
 
 	events := []store.Event{
 		{EventType: EventMoveRequest, EventData: "ignore 1", AggregateID: myGameID},
@@ -139,7 +141,7 @@ func TestFilterGameMoveEvents(t *testing.T) {
 }
 
 func TestFilterGameMoveEventsRollbackOutOfBounds(t *testing.T) {
-	myGameID := "my game"
+	const myGameID = "my game"
 
 	events := []store.Event{
 		{EventType: EventMoveSuccess, AggregateID: myGameID},
@@ -278,21 +280,23 @@ func TestRebuildGameNoEvents(t *testing.T) {
 		},
 	}
 
-	if res := Aggregate(game, []store.Event{}, "some id", -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", -1); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
-	if res := Aggregate(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", 0); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
-	if res := Aggregate(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", 0); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
 }
 
 func TestRebuildGameMoveEvents(t *testing.T) {
+	const myGameID = "my game"
+
 	var queries []string
 	game := &FakeGame{
 		moveFn: func(query string) error {
@@ -300,8 +304,6 @@ func TestRebuildGameMoveEvents(t *testing.T) {
 			return nil
 		},
 	}
-
-	myGameID := "my game"
 
 	testCases := struct {
 		events        []store.Event
@@ -315,7 +317,7 @@ func TestRebuildGameMoveEvents(t *testing.T) {
 		},
 		expectedMoves: []string{"Hey", "I'm moving", "Well done!", "All done!"},
 	}
-	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -326,6 +328,10 @@ func TestRebuildGameMoveEvents(t *testing.T) {
 }
 
 func TestRebuildGameMovePromotionEvents(t *testing.T) {
+	const (
+		myGameID = "my game"
+	)
+
 	var queries []string
 
 	game := &FakeGame{
@@ -338,8 +344,6 @@ func TestRebuildGameMovePromotionEvents(t *testing.T) {
 			return nil
 		},
 	}
-
-	myGameID := "my game"
 
 	testCases := struct {
 		events        []store.Event
@@ -354,7 +358,7 @@ func TestRebuildGameMovePromotionEvents(t *testing.T) {
 		expectedMoves: []string{"move: Hey", "move: I'm moving", "promotion: I promote", "move: Well done!"},
 	}
 
-	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -365,6 +369,11 @@ func TestRebuildGameMovePromotionEvents(t *testing.T) {
 
 func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 	var queries []string
+	const (
+		myGameID    = "my game"
+		otherGameID = "other game"
+	)
+
 	game := &FakeGame{
 		moveFn: func(query string) error {
 			queries = append(queries, fmt.Sprintf("move: %s", query))
@@ -375,9 +384,6 @@ func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 			return nil
 		},
 	}
-
-	myGameID := "my game"
-	otherGameID := "other game"
 
 	testCases := struct {
 		events        []store.Event
@@ -394,7 +400,7 @@ func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 		expectedMoves: []string{"move: Hey", "move: I'm moving", "promotion: I promote"},
 	}
 
-	if res := Aggregate(game, testCases.events, myGameID, 3); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, 3); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -404,6 +410,8 @@ func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 }
 
 func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
+	const myGameID = "my game"
+
 	var queries []string
 	game := &FakeGame{
 		moveFn: func(query string) error {
@@ -416,9 +424,6 @@ func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
 		},
 	}
 
-	myGameID := "my game"
-	otherGameID := "other game"
-
 	testCases := struct {
 		events        []store.Event
 		expectedMoves []string
@@ -428,12 +433,11 @@ func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
 			{AggregateID: myGameID, EventType: EventMoveSuccess, EventData: "I'm moving"},
 			{AggregateID: myGameID, EventType: EventPromotionSuccess, EventData: "I promote"},
 			{AggregateID: myGameID, EventType: EventRollbackSuccess},
-			{AggregateID: otherGameID, EventType: EventRollbackSuccess},
 		},
 		expectedMoves: []string{"move: Hey", "move: I'm moving"},
 	}
 
-	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res == nil || res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
