@@ -84,13 +84,13 @@ func (a *api) gameHandler(w http.ResponseWriter, r *http.Request) {
 	events := handlers.FilterEvents(a.store.Events(), gameID)
 	game := handlers.Aggregate(chess.NewGame(), events, gameID, -1)
 
-	var tpl bytes.Buffer
+	var b bytes.Buffer
 	t := template.Must(template.ParseFiles( "templates/game.html.tmpl"))
-	if err := t.ExecuteTemplate(&tpl, "base", page{
+	if err := t.ExecuteTemplate(&b, "base", page{
 		Name: gameID, Board: Board{Squares: game.Draw(), Moves: game.Moves()}}); err != nil {
 		panic(err)
 	}
-	w.Write(tpl.Bytes())
+	w.Write(b.Bytes())
 }
 
 func (a *api) boardHandler(w http.ResponseWriter, r *http.Request) {
@@ -105,12 +105,12 @@ func (a *api) boardHandler(w http.ResponseWriter, r *http.Request) {
 			events := handlers.FilterEvents(a.store.Events(), gameID)
 			game := handlers.Aggregate(chess.NewGame(), events, gameID, int(lastMove))
 
-			var tpl bytes.Buffer
+			var b bytes.Buffer
 			t := template.Must(template.ParseFiles("templates/board.html.tmpl"))
-			if err := t.ExecuteTemplate(&tpl, "board", Board{game.Draw(), game.Moves()}); err != nil {
+			if err := t.ExecuteTemplate(&b, "board", Board{game.Draw(), game.Moves()}); err != nil {
 				panic(err)
 			}
-			w.Write(tpl.Bytes())
+			w.Write(b.Bytes())
 		}
 	} else if r.Method == "POST" {
 		var m struct {
@@ -148,12 +148,12 @@ func (a *api) sliderHandler(w http.ResponseWriter, r *http.Request) {
 		events := handlers.FilterEvents(a.store.Events(), gameID)
 		game := handlers.Aggregate(chess.NewGame(), events, gameID, int(lastMove))
 
-		var tpl bytes.Buffer
+		var b bytes.Buffer
 		t := template.Must(template.ParseFiles("templates/slider.html.tmpl"))
-		if err := t.ExecuteTemplate(&tpl, "slider", len(game.Moves())); err != nil {
+		if err := t.ExecuteTemplate(&b, "slider", len(game.Moves())); err != nil {
 			panic(err)
 		}
-		w.Write(tpl.Bytes())
+		w.Write(b.Bytes())
 	}
 }
 
@@ -230,10 +230,10 @@ func (a *api) wsHandler(ws *websocket.Conn) {
 
 func (a *api) scoreHandler(w http.ResponseWriter, r *http.Request) {
 	data := handlers.BuildScores(a.store)
-	var tpl bytes.Buffer
+	var b bytes.Buffer
 	t := template.Must(template.ParseFiles("templates/scoreboard.html.tmpl"))
-	if err := t.ExecuteTemplate(&tpl, "score_board", data); err != nil {
+	if err := t.ExecuteTemplate(&b, "score_board", data); err != nil {
 		panic(err)
 	}
-	w.Write(tpl.Bytes())
+	w.Write(b.Bytes())
 }
