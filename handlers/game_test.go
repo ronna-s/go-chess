@@ -127,7 +127,7 @@ func TestFilterGameMoveEvents(t *testing.T) {
 		{EventType: EventPromotionRequest, EventData: "ignore", AggregateID: myGameID},
 	}
 
-	filtered := FilterGameMoveEvents(events, myGameID)
+	filtered := FilterEvents(events, myGameID)
 	expected := []store.Event{
 		{EventType: EventMoveSuccess, EventData: "append 1", AggregateID: myGameID},
 		{EventType: EventPromotionSuccess, EventData: "append 3", AggregateID: myGameID},
@@ -147,7 +147,7 @@ func TestFilterGameMoveEventsRollbackOutOfBounds(t *testing.T) {
 		{EventType: EventRollbackSuccess, AggregateID: myGameID},
 	}
 
-	filtered := FilterGameMoveEvents(events, myGameID)
+	filtered := FilterEvents(events, myGameID)
 
 	if !reflect.DeepEqual(filtered, []store.Event{}) {
 		t.Error("expected to return an uninitialzied slice but received", filtered)
@@ -278,15 +278,15 @@ func TestRebuildGameNoEvents(t *testing.T) {
 		},
 	}
 
-	if res := MustRebuildGame(game, []store.Event{}, "some id", -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", -1); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
-	if res := MustRebuildGame(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
-	if res := MustRebuildGame(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
+	if res := Aggregate(game, []store.Event{}, "some id", 0); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -315,7 +315,7 @@ func TestRebuildGameMoveEvents(t *testing.T) {
 		},
 		expectedMoves: []string{"Hey", "I'm moving", "Well done!", "All done!"},
 	}
-	if res := MustRebuildGame(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -354,7 +354,7 @@ func TestRebuildGameMovePromotionEvents(t *testing.T) {
 		expectedMoves: []string{"move: Hey", "move: I'm moving", "promotion: I promote", "move: Well done!"},
 	}
 
-	if res := MustRebuildGame(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -394,7 +394,7 @@ func TestRebuildGameMovePromotionEventsWithLastMoveID(t *testing.T) {
 		expectedMoves: []string{"move: Hey", "move: I'm moving", "promotion: I promote"},
 	}
 
-	if res := MustRebuildGame(game, testCases.events, myGameID, 3); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, 3); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 
@@ -433,7 +433,7 @@ func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
 		expectedMoves: []string{"move: Hey", "move: I'm moving"},
 	}
 
-	if res := MustRebuildGame(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
+	if res := Aggregate(game, testCases.events, myGameID, -1); res.(*FakeGame) != game {
 		t.Error("Return value incorrect")
 	}
 

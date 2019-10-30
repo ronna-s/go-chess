@@ -5,9 +5,9 @@ import "log"
 type EventStore struct {
 	events       []Event
 	eventsCh     chan Event
-	registerCh   chan EventHandler
-	unregisterCh chan EventHandler
-	handlers     []EventHandler
+	registerCh   chan *EventListener
+	unregisterCh chan *EventListener
+	listeners    []*EventListener
 }
 
 func NewEventStore() *EventStore {
@@ -22,8 +22,8 @@ func (store *EventStore) Events() []Event {
 
 func (store *EventStore) Run() {
 	store.eventsCh = make(chan Event)
-	store.registerCh = make(chan EventHandler)
-	store.unregisterCh = make(chan EventHandler)
+	store.registerCh = make(chan *EventListener)
+	store.unregisterCh = make(chan *EventListener)
 
 	go func() {
 		for {
@@ -31,15 +31,15 @@ func (store *EventStore) Run() {
 			case e := <-store.eventsCh:
 				e.Id = store.nextID(store.events)
 				store.events = append(store.events, e)
-				for _, s := range store.handlers {
-					s.cb(store, e)
+				for _, s := range store.listeners {
+					s.notify(store, e)
 				}
 			case reg := <-store.registerCh:
-				store.handlers = append(store.handlers, reg)
+				store.listeners = append(store.listeners, reg)
 			case unreg := <-store.unregisterCh:
-				for i := range store.handlers {
-					if unreg == store.handlers[i] {
-						store.handlers = append(store.handlers[:i], store.handlers[i+1:]...)
+				for i := range store.listeners {
+					if unreg == store.listeners[i] {
+						store.listeners = append(store.listeners[:i], store.listeners[i+1:]...)
 						log.Println("event handler deregistered")
 						break
 					}
@@ -62,13 +62,13 @@ func (store *EventStore) Persist(e Event) {
 	}()
 }
 
-func (store *EventStore) Register(s EventHandler) {
+func (store *EventStore) Register(s *EventListener) {
 	go func() {
 		store.registerCh <- s
 	}()
 }
 
-func (store *EventStore) Deregister(s EventHandler) {
+func (store *EventStore) Unregister(s *EventListener) {
 	go func() {
 		store.unregisterCh <- s
 	}()

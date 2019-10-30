@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-type app struct {
+type api struct {
 	store *store.EventStore
 }
 type Board struct {
@@ -30,8 +30,8 @@ type page struct {
 	Board Board
 }
 
-func newApi(d *store.EventStore) *app {
-	a := app{store: d}
+func newApi(d *store.EventStore) *api {
+	a := api{store: d}
 
 	cbs := []func(game handlers.Game, event store.Event, eventStore handlers.EventPersister){
 		handlers.MoveHandler,
@@ -44,8 +44,8 @@ func newApi(d *store.EventStore) *app {
 		func(i int) {
 			a.store.Register(store.NewEventHandler(
 				func(store *store.EventStore, event store.Event) {
-					events := handlers.FilterGameMoveEvents(store.Events(), event.AggregateID)
-					game := handlers.MustRebuildGame(chess.NewGame(), events, event.AggregateID, -1)
+					events := handlers.FilterEvents(store.Events(), event.AggregateID)
+					game := handlers.Aggregate(chess.NewGame(), events, event.AggregateID, -1)
 					cbs[i](game, event, store)
 				},
 			),
@@ -56,7 +56,7 @@ func newApi(d *store.EventStore) *app {
 	return &a
 }
 
-func (a *app) getOrGenerateGameName(gameID string) string {
+func (a *api) getOrGenerateGameName(gameID string) string {
 	if gameID == "" {
 		gameID = namegen.Generate()
 		log.Println(fmt.Errorf("New game created: %s", gameID))
@@ -64,7 +64,7 @@ func (a *app) getOrGenerateGameName(gameID string) string {
 	return gameID
 }
 
-func (a *app) newGameHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) newGameHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadFile("./public/static/new_game.html")
 	if err != nil {
 		log.Println(err)
@@ -73,20 +73,20 @@ func (a *app) newGameHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func (a *app) createGameHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) createGameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := namegen.Generate()
 	log.Println(fmt.Errorf("New game created: %s", gameID))
 
 	w.Header().Add("Location", "/game?game_id="+gameID)
 }
 
-func (a *app) gameHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) gameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
-	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
+	events := handlers.FilterEvents(a.store.Events(), gameID)
+	game := handlers.Aggregate(chess.NewGame(), events, gameID, -1)
 
 	var tpl bytes.Buffer
-	t := template.Must(template.ParseFiles("templates/board.tmpl", "templates/game.tmpl"))
+	t := template.Must(template.ParseFiles("templates/board.html.tmpl", "templates/game.html.tmpl"))
 	if err := t.ExecuteTemplate(&tpl, "base", page{
 		Name: gameID, Board: Board{Squares: game.Draw(), Moves: game.Moves()}}); err != nil {
 		panic(err)
@@ -94,27 +94,52 @@ func (a *app) gameHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(tpl.Bytes())
 }
 
-func (a *app) boardHandler(w http.ResponseWriter, r *http.Request) {
-	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
-	lastMoveStr := r.URL.Query().Get("last_move")
-	if lastMove, err := strconv.ParseInt(lastMoveStr, 10, 32); err != nil {
-		log.Println(err, lastMoveStr)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	} else {
-		events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
-		game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, int(lastMove))
+func (a *api) boardHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
+		lastMoveStr := r.URL.Query().Get("last_move")
+		if lastMove, err := strconv.ParseInt(lastMoveStr, 10, 32); err != nil {
+			log.Println(err, lastMoveStr)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		} else {
+			events := handlers.FilterEvents(a.store.Events(), gameID)
+			game := handlers.Aggregate(chess.NewGame(), events, gameID, int(lastMove))
 
-		var tpl bytes.Buffer
-		t := template.Must(template.ParseFiles("templates/board.tmpl"))
-		if err := t.ExecuteTemplate(&tpl, "board", Board{game.Draw(), game.Moves()}); err != nil {
-			panic(err)
+			var tpl bytes.Buffer
+			t := template.Must(template.ParseFiles("templates/board.html.tmpl"))
+			if err := t.ExecuteTemplate(&tpl, "board", Board{game.Draw(), game.Moves()}); err != nil {
+				panic(err)
+			}
+			w.Write(tpl.Bytes())
 		}
-		w.Write(tpl.Bytes())
+	} else if r.Method == "POST" {
+		var m struct {
+			AggregateId string
+			Type        string
+			Data        string
+		}
+		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		e := store.Event{AggregateID: m.AggregateId, EventData: m.Data}
+		log.Println(m.AggregateId)
+		switch m.Type {
+		case "move":
+			e.EventType = handlers.EventMoveRequest
+		case "promote":
+			e.EventType = handlers.EventPromotionRequest
+		case "rollback":
+			e.EventType = handlers.EventRollbackRequest
+		}
+		a.store.Persist(e)
+		w.WriteHeader(http.StatusCreated)
 	}
+
 }
 
-func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) sliderHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
 	lastMoveStr := r.URL.Query().Get("last_move")
 	if lastMove, err := strconv.ParseInt(lastMoveStr, 10, 32); err != nil {
@@ -122,11 +147,11 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
-		game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, int(lastMove))
+		events := handlers.FilterEvents(a.store.Events(), gameID)
+		game := handlers.Aggregate(chess.NewGame(), events, gameID, int(lastMove))
 
 		var tpl bytes.Buffer
-		t := template.Must(template.ParseFiles("templates/slider.tmpl"))
+		t := template.Must(template.ParseFiles("templates/slider.html.tmpl"))
 		if err := t.ExecuteTemplate(&tpl, "slider", len(game.Moves())); err != nil {
 			panic(err)
 		}
@@ -136,22 +161,22 @@ func (a *app) sliderHandler(w http.ResponseWriter, r *http.Request) {
 
 // debugHandler writes string representation of current board state to http response
 // it doesn't have any information about current game, only a list of moves, from which it builds the state
-func (a *app) debugHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) debugHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
 
-	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
-	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
+	events := handlers.FilterEvents(a.store.Events(), gameID)
+	game := handlers.Aggregate(chess.NewGame(), events, gameID, -1)
 
 	if _, err := w.Write([]byte(game.Debug())); err != nil {
 		log.Printf("can't write the response: %v", err)
 	}
 }
 
-func (a *app) promotionsHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := a.getOrGenerateGameName(r.URL.Query().Get("game_id"))
 
-	events := handlers.FilterGameMoveEvents(a.store.Events(), gameID)
-	game := handlers.MustRebuildGame(chess.NewGame(), events, gameID, -1)
+	events := handlers.FilterEvents(a.store.Events(), gameID)
+	game := handlers.Aggregate(chess.NewGame(), events, gameID, -1)
 
 	query := r.URL.Query().Get("target")
 	promotions := game.ValidPromotions(query)
@@ -165,7 +190,7 @@ func (a *app) promotionsHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (a *app) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := r.URL.Query().Get("game_id")
 	var ids []int
 	for _, e := range a.store.Events() {
@@ -180,7 +205,7 @@ func (a *app) eventIDsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) store.EventHandler {
+func (a *api) wsEventListener(ws *websocket.Conn, gameId string) *store.EventListener {
 	return store.NewEventHandler(
 		func(eventStore *store.EventStore, e store.Event) {
 			if e.AggregateID == gameId {
@@ -192,18 +217,18 @@ func (a *app) wsEventHandler(ws *websocket.Conn, gameId string) store.EventHandl
 				case handlers.EventMoveFail,
 					handlers.EventPromotionFail:
 					ws.Write([]byte("0"))
+				default:
+					log.Println("ignoring", e.EventType)
 				}
 			}
 		})
 }
 
-func (a *app) wsHandler(ws *websocket.Conn) {
+func (a *api) wsHandler(ws *websocket.Conn) {
 	log.Println("websocket connection initiated")
 
 	var m struct {
 		AggregateId string
-		Type        string
-		Data        string
 	}
 
 	if err := websocket.JSON.Receive(ws, &m); err != nil {
@@ -211,33 +236,21 @@ func (a *app) wsHandler(ws *websocket.Conn) {
 		return
 	}
 
-	handler := a.wsEventHandler(ws, m.AggregateId)
-	a.store.Register(handler)
+	l := a.wsEventListener(ws, m.AggregateId)
+	a.store.Register(l)
 	for {
 		if err := websocket.JSON.Receive(ws, &m); err != nil {
-			a.store.Deregister(handler)
+			a.store.Unregister(l)
 			log.Println("websocket closed or json invalid... closing connection")
 			return
 		}
-		e := store.Event{AggregateID: m.AggregateId, EventData: m.Data}
-		switch m.Type {
-		case "move":
-			e.EventType = handlers.EventMoveRequest
-		case "promote":
-			e.EventType = handlers.EventPromotionRequest
-		case "rollback":
-			e.EventType = handlers.EventRollbackRequest
-		default:
-			continue
-		}
-		a.store.Persist(e)
 	}
 }
 
-func (a *app) scoreHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) scoreHandler(w http.ResponseWriter, r *http.Request) {
 	data := handlers.BuildScores(a.store)
 	var tpl bytes.Buffer
-	t := template.Must(template.ParseFiles("templates/scoreboard.tmpl"))
+	t := template.Must(template.ParseFiles("templates/scoreboard.html.tmpl"))
 	if err := t.ExecuteTemplate(&tpl, "score_board", data); err != nil {
 		panic(err)
 	}

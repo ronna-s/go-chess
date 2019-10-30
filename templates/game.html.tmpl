@@ -63,6 +63,7 @@
             }));
             if (document.getElementById("movesRange") == null) {
                 renderBoard(-1);
+                renderSlider();
             } else {
                 renderBoard(document.getElementById("movesRange").value);
                 renderSlider();
@@ -157,21 +158,21 @@
             ev.dataTransfer.setData("text", ev.target.id);
         }
 
-        function promote(origPos, newPos, newPiece) {
-            var msg = {
-                Type: "promote",
-                Target: origPos + "-" + newPos + "-" + newPiece,
-                AggregateId: gameId
-            };
-            ws.send(JSON.stringify(msg));
-        }
-        
         function rollback() {
             var msg = {
                 Type: "rollback",
                 AggregateId: gameId
             };
-            ws.send(JSON.stringify(msg));
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', '/board?game_id=' + gameId);
+            xhr.onload = function () {
+                if (xhr.status !== 201) {
+                    alert("bad status code")
+                    shake(document.getElementById("board-div"));
+                }
+            };
+            xhr.send(JSON.stringify(msg));
+
         }
 
         function getPormotions(ev) {
@@ -216,7 +217,16 @@
                 Data: origPos + "-" + newPos + "-" + newPiece,
                 AggregateId: gameId
             };
-            ws.send(JSON.stringify(msg));
+
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', '/board?game_id=' + gameId);
+            xhr.onload = function () {
+                if (xhr.status !== 201) {
+                    alert("bad status code")
+                    shake(document.getElementById("board-div"));
+                }
+            };
+            xhr.send(JSON.stringify(msg));
         }
 
         function move(ev) {
@@ -233,9 +243,18 @@
                 var msg = {
                     Type: "move",
                     Data: origParentNode.id + "-" + destParentNode.id,
-                    GameID: gameId
+                    AggregateId: gameId
                 };
-                ws.send(JSON.stringify(msg));
+
+                xhr = new XMLHttpRequest();
+                xhr.open('POST', '/board?game_id=' + gameId);
+                xhr.onload = function () {
+                    if (xhr.status !== 201) {
+                        alert("bad status code")
+                        shake(document.getElementById("board-div"));
+                    }
+                };
+                xhr.send(JSON.stringify(msg));
             }
         }
     </script>
@@ -252,6 +271,6 @@
 </div>
 
 </body>
-<script>renderSlider()</script>
+<script></script>
 </html>
 {{end}}
