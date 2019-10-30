@@ -1,6 +1,9 @@
 package store
 
+import "sync"
+
 type EventStore struct {
+	mu           sync.RWMutex
 	events       []Event
 	eventsCh     chan Event
 	registerCh   chan *EventListener
@@ -15,7 +18,15 @@ func NewEventStore() *EventStore {
 }
 
 func (store *EventStore) Events() []Event {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
 	return store.events
+}
+func (store *EventStore) AddEvent(ev Event) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+	ev.Id = store.nextID(store.events)
+	store.events = append(store.events, ev)
 }
 
 func (store *EventStore) Run() {
@@ -27,8 +38,7 @@ func (store *EventStore) Run() {
 		for {
 			select {
 			case e := <-store.eventsCh:
-				e.Id = store.nextID(store.events)
-				store.events = append(store.events, e)
+				store.AddEvent(e)
 				for _, s := range store.listeners {
 					s.notify(store, e)
 				}
