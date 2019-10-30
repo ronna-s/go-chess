@@ -434,7 +434,7 @@ func TestRebuildGameMovePromotionEventsWithRollback(t *testing.T) {
 			{AggregateID: myGameID, EventType: EventPromotionSuccess, EventData: "I promote"},
 			{AggregateID: myGameID, EventType: EventRollbackSuccess},
 		},
-		expectedMoves: []string{"move: Hey", "move: I'm moving"},
+		expectedMoves: []string{"move: Hey", "move: I'm moving", "promotion: I promote"},
 	}
 
 	if res := Aggregate(game, testCases.events, myGameID, -1); res == nil || res.(*FakeGame) != game {
