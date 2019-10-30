@@ -85,7 +85,7 @@ func (a *api) gameHandler(w http.ResponseWriter, r *http.Request) {
 	game := handlers.Aggregate(chess.NewGame(), events, gameID, -1)
 
 	var tpl bytes.Buffer
-	t := template.Must(template.ParseFiles("templates/board.html.tmpl", "templates/game.html.tmpl"))
+	t := template.Must(template.ParseFiles( "templates/game.html.tmpl"))
 	if err := t.ExecuteTemplate(&tpl, "base", page{
 		Name: gameID, Board: Board{Squares: game.Draw(), Moves: game.Moves()}}); err != nil {
 		panic(err)
