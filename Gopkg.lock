@@ -5,13 +5,13 @@
   branch = "master"
   name = "github.com/notnil/chess"
   packages = ["."]
-  revision = "3c94dbc3873f3eba4bfe7d7edeaa5de5f0884ad8"
+  revision = "e7f43cbaadede59073472bf601c689290740602e"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["websocket"]
-  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+  revision = "fe3aa8a4527195a6057b3fad46619d7d090e99b5"
 
 [solve-meta]
   analyzer-name = "dep"
