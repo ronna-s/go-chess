@@ -10,7 +10,7 @@ Build the code
 
 Run the executable `./go-chess`
 
-Go to 127.0.0.1
+Go to http://127.0.0.1 (or localhost) and start playing
 
 
 
