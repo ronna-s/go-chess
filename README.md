@@ -1,4 +1,4 @@
-# go-event-sourcing-excercise
+# go-chess
 Event sourcing for a chess game
 
 Code to implement is at handlers/game.go
