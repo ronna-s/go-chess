@@ -1,0 +1,9 @@
+github.com/notnil/chess v0.0.0-20191006020310-e7f43cbaaded h1:V+9WIirKG0PSgZ6DTPIfUex3qkob33iZaMSPj7CDxFU=
+github.com/notnil/chess v0.0.0-20191006020310-e7f43cbaaded/go.mod h1:Yu0kMeugIBDf7tmefiwvk+/DabQ5AzQwKUM5Kjt26iQ=
+github.com/ronna-s/go-chess v0.0.0-20191031005751-b8209d3eb472 h1:j4p8PMdLxcOA6nAKaIcKGz8iKy4eVwF8E1m4hk9ufTw=
+github.com/ronna-s/go-chess v0.0.0-20191031005751-b8209d3eb472/go.mod h1:2zmF0bzmgj+YfaxDgiSdXDkKiR4b0wf0x5NIEia0k9g=
+golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271 h1:N66aaryRB3Ax92gH0v3hp1QYZ3zWWCCUR/j8Ifh45Ss=
+golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
